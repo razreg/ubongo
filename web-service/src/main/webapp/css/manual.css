@@ -1,0 +1,30 @@
+.jumbotron-additions {
+    margin-top: 20px;
+    padding-top: 10px;
+    padding-bottom: 0;
+    height: 83vh;
+    overflow-y: scroll;
+}
+.jumbotron-additions > h1 {
+    line-height: 1.1;
+    font-size: 20pt;
+}
+
+.col-md-6-additions {
+    margin-top: 0;
+}
+
+.navbar-additions {
+    height: 12vh;
+}
+
+.radio-label {
+    margin-bottom: 0;
+    margin-top: 4px;
+    margin-left: 4px;
+}
+
+.btn-task-action {
+    width: 80%;
+    margin-bottom: 4px;
+}

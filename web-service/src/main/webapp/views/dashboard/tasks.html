@@ -1,0 +1,57 @@
+<div class="jumbotron jumbotron-additions" ng-controller="TasksController">
+    <h1>Tasks</h1>
+    <p></p>
+    <div class="form-group">
+        <table width="100%">
+            <tr>
+                <td width="20%"><label class="control-label" for="selectFlow">Select Flow:</label></td>
+                <td><select class="form-control" id="selectFlow" ng-model="selectFlow"
+                            ng-options="flow.flowId + ' - ' + flow.studyName for flow in flows"
+                            ng-change="loadFlow()">
+                    <option disabled selected ng-bind="defaultFlowText.value"></option>
+                </select></td>
+            </tr>
+        </table>
+    </div>
+
+    <p></p>
+    <div>
+        <table width="100%">
+            <tr>
+                <td width="30%"><label class="control-label">Study:&nbsp;</label></td>
+                <td><div ng-bind="currFlow.context.study"></div></td>
+            </tr><tr>
+                <td><label class="control-label">Subject:&nbsp;</label></td>
+                <td><div ng-bind="currFlow.context.subject"></div></td>
+            </tr><tr>
+                <td><label class="control-label">Run/Anatomy:&nbsp;</label></td>
+                <td><div ng-bind="currFlow.context.run"></div></td>
+            </tr><tr>
+                <td style="color:red;" colspan="2" align="center" ng-if="err.display" ng-bind="err.msg"></td>
+            </tr>
+        </table>
+    </div>
+    <p></p>
+
+    <div id="tasksGrid" ui-grid="taskGridOptions" class="gridStyle unitGridStyle"
+         ui-grid-selection ui-grid-move-columns ui-grid-resize-columns></div>
+    <p></p>
+
+    <div class="form-group" ng-if="taskSelected.length > 0">
+        <form>
+        <label class="control-label">Task Details and Actions</label>
+        <table width="100%">
+            <tr>
+                <td width="75%"><div id="taskDetailsGrid" ui-grid="taskDetailsGridOptions" class="gridStyle unitGridStyle"
+                         ui-grid-move-columns ui-grid-resize-columns></div></td>
+                <td align="center" valign="top">
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="cancelTask()" ng-disabled="!currTask.actions.act_cancel">Cancel&nbsp;</button>
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="killTask()" ng-disabled="!currTask.actions.act_kill">Stop&nbsp;</button>
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="resumeTask()" ng-disabled="!currTask.actions.act_resume">Resume&nbsp;</button>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </div>
+
+</div>

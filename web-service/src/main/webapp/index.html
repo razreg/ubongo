@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="ubongoApp">
+<head>
+    <title>Ubongo</title>
+    <base href="/" />
+    <!-- Bootstrap core css -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/cerulean-bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <!-- custom css -->
+    <link href="css/dashboard.css" rel="stylesheet" type="text/css" />
+    <link href="css/style-auto.css" rel="stylesheet" type="text/css" />
+    <link href="css/manual.css" rel="stylesheet" type="text/css" />
+    <link href="lib/angular-ui-grid/ui-grid.min.css" rel="stylesheet" type="text/css" />
+    <link href="lib/ui-grid-draggable-rows/less/draggable-rows.less" rel="stylesheet" type="text/css" />
+    <link href="css/units-grid.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div ng-include src="'header.html'"></div>
+    <div class="content">
+        <div ng-view></div>
+    </div>
+
+    <!-- scripts -->
+    <script type="text/javascript" src="js/vendor/jquery-3.1.0.min.js"></script>
+    <script type="text/javascript" src="js/vendor/angular.min.js"></script>
+    <script type="text/javascript" src="js/vendor/angular-route.min.js"></script>
+    <script type="text/javascript" src="lib/angular-ui-grid/ui-grid.min.js"></script>
+    <script type="text/javascript" src="lib/ui-grid-draggable-rows/js/draggable-rows.js"></script>
+    <script type="text/javascript" src="views/create-flow/controllers/flow_controller.js"></script>
+    <script type="text/javascript" src="views/create-flow/controllers/flow_context_controller.js"></script>
+    <script type="text/javascript" src="views/create-flow/controllers/units_selection_controller.js"></script>
+    <script type="text/javascript" src="views/dashboard/controllers/tasks_controller.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>

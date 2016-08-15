@@ -1,0 +1,105 @@
+<div class="jumbotron jumbotron-additions" ng-controller="FlowContextController">
+    <form name="flowMainForm">
+    <table width="100%">
+        <tr>
+            <td>
+                <h1 style="line-height:1.1;font-size:20pt;">Flow</h1>
+            </td>
+            <td align="right" valign="middle" width="25%">
+                <input type="radio" name="flowSource" value="new" ng-model="flow.source"
+                       class="radio-inline" id="newFlow" style="margin-bottom:4px;" checked>
+                <label for="newFlow" class="control-label radio-label">New</label>
+            </td>
+            <td align="right" valign="middle" width="25%">
+                <input type="radio" name="flowSource" value="analysis" ng-model="flow.source" ng-change="flowSourceAnalysis()"
+                       class="radio-inline" id="flowFromAnalysis" style="margin-bottom:4px;">
+                <label for="flowFromAnalysis" class="control-label radio-label">From analysis</label>
+            </td>
+        </tr>
+    </table>
+    <p></p>
+    <div class="form-group" ng-if="flow.source == 'analysis'">
+        <label class="control-label" for="analysisSelection">Saved Analysis</label>
+        <select class="form-control" id="analysisSelection" ng-model="selectedAnalysis"
+                ng-options="analysisName for analysisName in flow.analysisNames">
+            <option disabled selected
+                    ng-bind="flow.defaultAnalysisText"></option>
+        </select>
+    </div>
+    <div class="form-group" ng-if="flow.source == 'new'">
+        <label class="control-label" for="analysisNameInput">Analysis Name</label>
+        <input type="text" class="form-control" id="analysisNameInput"
+               placeholder="Insert name to save template for future flows">
+    </div>
+    <div class="form-group">
+        <label class="control-label" for="studyInput">Study</label> <label style="color:red;">*</label>
+        <input type="text" class="form-control" id="studyInput" ng-model="studyInput" name="studyInput"
+               placeholder="Insert name of study, matching study directory" required>
+    </div>
+    <div class="form-group">
+        <table width="100%">
+            <tr>
+                <td>
+                    <label class="control-label" for="subjectInput">Subject</label> <label style="color:red;">*</label>
+                </td>
+                <td align="right" valign="middle" width="25%">
+                    <input type="radio" name="subjectRadio" value="all" ng-model="flow.allSubjects"
+                           class="radio-inline" id="allSubjects" style="margin-bottom:4px;" checked>
+                    <label for="allSubjects" class="control-label radio-label">All</label>
+                </td>
+                <td align="right" valign="middle" width="25%">
+                    <input type="radio" name="subjectRadio" value="custom" ng-model="flow.allSubjects"
+                           class="radio-inline" id="customSubject" style="margin-bottom:4px;" checked>
+                    <label for="customSubject" class="control-label radio-label">Custom</label>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3"><input type="text" class="form-control" id="subjectInput" name="subjectInput"
+                           ng-model="subjectInput" ng-disabled="flow.allSubjects == 'all'" ng-required="flow.allSubjects == 'custom'"
+                           placeholder="Insert name of subject, matching subject directory"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="form-group">
+        <table width="100%">
+            <tr>
+                <td>
+                    <label class="control-label" for="runInput">Run / Anatomy</label> <label style="color:red;">*</label>
+                </td>
+                <td align="right" valign="middle" width="25%">
+                    <input type="radio" name="runRadio" value="all" ng-model="flow.allRuns"
+                           class="radio-inline" id="allRuns" style="margin-bottom:4px;" checked>
+                    <label for="allRuns" class="control-label radio-label">All</label>
+                </td>
+                <td align="right" valign="middle" width="25%">
+                    <input type="radio" name="runRadio" value="custom" ng-model="flow.allRuns"
+                           class="radio-inline" id="customRun" style="margin-bottom:4px;" checked>
+                    <label for="customRun" class="control-label radio-label">Custom</label>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3"><input type="text" class="form-control" id="runInput" name="runInput"
+                                       ng-model="runInput" ng-disabled="flow.allRuns == 'all'" ng-required="flow.allRuns == 'custom'"
+                                       placeholder="Insert name of run, matching run directory, or write anatomy"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="form-group">
+        <table width="100%">
+            <tr>
+                <td align="left" width="70%"><div>
+                    <label ng-bind="flow.submitMsg" ng-style="flow.submitStyle"
+                           ng-if="flowMainForm.$pristine && flowMainForm.$valid"></label>
+                </div></td>
+                <td align="right" style="padding-right:5px;">
+                    <button type="button" class="btn btn-default">Save Analysis&nbsp;</button></td>
+                <td align="right"><button type="button" class="btn btn-default"
+                            ng-click="runFlow()"
+                            ng-disabled="flowMainForm.$pristine || flowMainForm.$invalid ||
+                            unitsScope.unitGridOptions.data.length === 0">Run Flow&nbsp;</button></td>
+            </tr>
+        </table>
+    </div>
+    </form>
+</div>

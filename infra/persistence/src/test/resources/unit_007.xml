@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--<!DOCTYPE unit SYSTEM "unit.dtd">-->
+
+<unit id="7">
+    <description>Unit-test unit</description>
+    <parameters>
+        <file-parameter>
+            <name>myFile</name>
+            <display>File parameter</display>
+        </file-parameter>
+        <string-parameter>
+            <name>myStr</name>
+            <display>String parameter</display>
+        </string-parameter>
+    </parameters>
+</unit>

@@ -1,0 +1,54 @@
+#eclipse and Intellij project file
+*.iml
+*.eclipse
+#ignore thumbnails created by windows
+Thumbs.db
+#Ignore files build by Visual Studio
+.idea
+*.obj
+*.jar
+*.exe
+*.mp3
+*.pdb
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+*.info
+[Ll]og/
+[Bb]in
+[Dd]ebug*/
+*.lib
+*.sbr
+obj/
+
+.svn*/
+*.idl
+*.iws
+*.sdf
+*.opensdf
+*.class
+*.ipch
+*.orig
+midloutput*/
+target*/
+out*/
+*.ipch
+*.prefs
+*.project
+*.classpath
+repository*/
+.repository*/
+
+#ignore private files
+*raz*

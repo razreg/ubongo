@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <debug>true</debug>
+
+    <db-connection>
+        <host>mysqlsrv.cs.tau.ac.il</host>
+        <port>3306</port>
+        <schema>brain_analysis_db</schema>
+        <user>brain_a_db</user>
+        <password>brain_a_db</password>
+    </db-connection>
+
+    <ssh-connection>
+        <host>nova.cs.tau.ac.il</host>
+        <port>22</port>
+        <user>university_user</user>
+        <keyFilePath>path_to_rsa_private_key</keyFilePath>
+    </ssh-connection>
+
+    <machines>
+        <machine id="1">
+            <address>rack-hezi-01</address>
+        </machine>
+    </machines>
+
+</configuration>

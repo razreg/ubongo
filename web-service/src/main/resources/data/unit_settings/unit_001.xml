@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<unit id="1"> <!-- supply a unique integer id, which will also appear in the name of the file (we expect a number between 0 and 999 but this can be changed) -->
+    <name>RecreateDCMFilesToMatchBV</name>
+    <description>Renames the DCM files received from the magnet to match BrainVoyager needs</description>
+    <input-files>/specific/netapp5/hezi/shellybar/fMRIPiplineSystem/Experiments/myStudy/mySubject/Series20141018_122514/</input-files>
+    <output-dir>/specific/netapp5/hezi/shellybar/fMRIPiplineSystem/Experiments/myStudy/mySubject/anatomy/rawDCMs/</output-dir>
+    <parameters> <!-- parameters that go in the script - anything other than the input/output files -->
+        <string-parameter>
+            <name>subject</name>
+            <display>Subject Name</display>
+            <default>{subject}</default>
+        </string-parameter>
+    </parameters>
+</unit>
