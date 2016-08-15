@@ -1,17 +1,15 @@
 package ubongo.common.datatypes.unit;
 
-import java.io.FileNotFoundException;
+import ubongo.common.constants.MachineConstants;
+import ubongo.persistence.Configuration;
+
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 public class UnitAdder {
     final static int BASE_PARAMS = 3;
 
-    public static void generateBashFile(Unit unit, String unitBashPath)
-            throws FileNotFoundException, UnsupportedEncodingException {
-        List<UnitParameter> unitParams = unit.getParameters();
-
+    public static void generateBashFile(Unit unit, String unitBashPath) throws Exception {
         PrintWriter writer = new PrintWriter(unitBashPath, "UTF-8");
         addBashParams(unit, writer);
         addMatlabLoopPrefix(writer);
@@ -34,7 +32,7 @@ public class UnitAdder {
         writer.println("\n");
     }
 
-    private static void addMatlabLoopPrefix(PrintWriter writer) {
+    private static void addMatlabLoopPrefix(PrintWriter writer) throws Exception{
         writer.println("for currfilename in ${INPUT_DIR}/*");
         writer.println("do");
         writer.println("\t" + "currfilename=$(basename \"$currfilename\")");
@@ -45,13 +43,12 @@ public class UnitAdder {
         writer.println("\t" + "rm -f \"${filename}\"");
         writer.println("\t" + "touch \"${filename}\"");
         writer.println("\t" + "# Write to Matlab file");
-        writer.println("\t" + "echo \"addpath(genpath('../eeglab13_0_0b/eeglab13_0_0b'));\" >> ${filename}");
-        writer.println("\t" + "echo \"rmpath('../eeglab13_0_0b/eeglab13_0_0b/functions/octavefunc/signal');\" >> ${filename}");
+
+        addMatlabDependencies(writer);
 
         writer.println("\t" + "echo \"input_dir ='${INPUT_DIR}';\" >> ${filename}");
         writer.println("\t" + "echo \"output_dir ='${OUTPUT_DIR}';\" >> ${filename}");
         writer.println("\t" + "echo \"input_file_name ='${currfilename}';\" >> ${filename}");
-
     }
 
     private static void addMatlabLoopSuffix(Unit unit, PrintWriter writer) {
@@ -65,8 +62,18 @@ public class UnitAdder {
 
     private static void addMatlabParams(Unit unit, PrintWriter writer) {
         List<UnitParameter> unitParams = unit.getParameters();
-        unitParams.stream().forEach(param ->
-                writer.println("\t" + "echo \"" + param.getName().toLowerCase() + "='${"
-                        + param.getName().toUpperCase() + "}';\" >> ${filename}"));
+        int i = 1;
+        for (UnitParameter param : unitParams){
+            writer.println("\t" + "echo \"" + param.getName().toLowerCase() + "='${" + param.getName().toUpperCase() + "}';\" >> ${filename}");
+            i++;
+        }
+    }
+
+    private static void addMatlabDependencies(PrintWriter writer) throws Exception{
+        String configPath = System.getProperty(MachineConstants.CONFIG_PATH);
+        Configuration configuration = Configuration.loadConfiguration(configPath);
+        List<String> dependencies = configuration.getUnitsMainProperties().getMatlabDepenencies();
+        for (String dependency : dependencies)
+            writer.println("\t" + "echo \"" + dependency +";\" >> ${filename}");
     }
 }

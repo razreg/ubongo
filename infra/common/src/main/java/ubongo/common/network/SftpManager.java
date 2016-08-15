@@ -213,27 +213,36 @@ public class SftpManager {
             fsManager = VFS.getManager();
 
             File folder = new File(localDir);
-            File[] listOfToUploadFiles = folder.listFiles();
-            logger.debug("localDir = " + localDir);
-
-            for (File fileToUpload : listOfToUploadFiles) {
-                handleStopInterrupt();
-                if (!fileToUpload.exists()) {
-                    logger.error("Error. Local file not found : " + fileToUpload.getName());
-                    throw new NetworkException("Error. Local file not found");
-                }
-                String fileName = fileToUpload.getName();
-                FileObject localFile = fsManager.resolveFile(fileToUpload.getAbsolutePath(),opts);
-                FileObject remoteFile = fsManager.resolveFile(sftpUri+ File.separator + fileName, opts);
-                remoteFile.copyFrom(localFile, Selectors.SELECT_SELF);
-                logger.info("File uploaded successfully: " + fileName);
-            }
+            recursiveUploadDirectory(opts, folder);
         } catch (FileSystemException ex) {
             handleIfItCausedByInterrupt(ex);
             logger.error("sftp error", ex);
             throw new NetworkException(ex.getMessage());
         }
         return;
+    }
+
+    private void recursiveUploadDirectory(FileSystemOptions opts, File folder) throws InterruptedException, NetworkException, FileSystemException {
+        File[] listOfToUploadFiles = folder.listFiles();
+        logger.debug("folder to upload = " + folder);
+
+        for (File fileToUpload : listOfToUploadFiles) {
+            logger.debug("fileToUpload: " + fileToUpload);
+            handleStopInterrupt();
+            if (!fileToUpload.exists()) {
+                logger.error("Error. Local file not found : " + fileToUpload.getAbsolutePath());
+                throw new NetworkException("Error. Local file not found");
+            }
+            FileObject localFile = fsManager.resolveFile(fileToUpload.getAbsolutePath(),opts);
+            String relativeLocalPath = new File(localDir).toURI().relativize(new File(fileToUpload.getAbsolutePath()).toURI()).getPath();
+            FileObject remoteFile = fsManager.resolveFile(sftpUri + File.separator + relativeLocalPath, opts);
+            remoteFile.copyFrom(localFile, Selectors.SELECT_SELF);
+            logger.info("File uploaded successfully: " + relativeLocalPath);
+
+            if (fileToUpload.listFiles() != null){
+                recursiveUploadDirectory(opts, fileToUpload);
+            }
+        }
     }
 
     private void handleStopInterrupt() throws InterruptedException {

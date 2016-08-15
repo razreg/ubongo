@@ -36,6 +36,14 @@ public class Configuration {
     @XmlElement(name = "debug")
     private Boolean debug;
 
+    @XmlElement(name = "units")
+    private UnitsMainProperties unitsMainProperties;
+
+    public UnitsMainProperties getUnitsMainProperties() {
+        return unitsMainProperties;
+    }
+
+
     public boolean getDebug() {
         return debug;
     }
