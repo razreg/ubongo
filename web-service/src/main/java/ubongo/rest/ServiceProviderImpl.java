@@ -110,7 +110,8 @@ public class ServiceProviderImpl implements ServiceProvider {
 
     @Override
     public void resumeTask(Task task) throws PersistenceException {
-        persistence.resumeTask(task);
+        ExecutionRequest request = new ExecutionRequest(task.getId(), ExecutionRequest.Action.RESUME_TASK);
+        persistence.saveRequest(request);
     }
 
     @Override

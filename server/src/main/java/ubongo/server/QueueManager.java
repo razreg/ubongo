@@ -111,6 +111,22 @@ public class QueueManager {
     }
 
     /**
+     * Resumes the task in the DB (changes status to 'New') and notifies the producer.
+     * @param taskId of task to resume (must be resumable, i.e. stopped, canceled, etc.)
+     * @throws PersistenceException if the DB update has failed.
+     */
+    public void resumeTask(int taskId) throws PersistenceException {
+        synchronized(producerLock) {
+            producerMayWork = false;
+        }
+        persistence.resumeTask(taskId);
+        synchronized(producerLock) {
+            producerMayWork = true;
+            producerLock.notify();
+        }
+    }
+
+    /**
      * This method is called by the ExecutionProxy {@link ExecutionProxy} to update the system after a task
      * has been completed, stopped or failed. First, the status of task is persisted in the DB. Second, if the task
      * has completed successfully, the QueueManager updates tasks which depend on the completion of task by
@@ -161,6 +177,9 @@ public class QueueManager {
     synchronized private boolean handleCompletedTask(Task task) throws PersistenceException {
         TaskKey key = new TaskKey(task);
         DependencyKey dependencyKey = setLocatorMap.get(key);
+        if (dependencyKey == null) {
+            return false;
+        }
         /* the set of all tasks with the same flow id and serial number which need to be completed in order for tasks
            with greater serial numbers to be executed */
         Set<Integer> taskIdsSet = dependencyKey.getSet();

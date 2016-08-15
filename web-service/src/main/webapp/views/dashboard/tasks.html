@@ -27,7 +27,7 @@
                 <td><label class="control-label">Run/Anatomy:&nbsp;</label></td>
                 <td><div ng-bind="currFlow.context.run"></div></td>
             </tr><tr>
-                <td style="color:red;" colspan="2" align="center" ng-if="err.display" ng-bind="err.msg"></td>
+                <td colspan="2" align="center" ng-style="err.style" ng-if="err.display" ng-bind="err.msg"></td>
             </tr>
         </table>
     </div>

@@ -173,6 +173,9 @@ public class ExecutionServer {
                 case KILL_TASK:
                     killTask(INSTANCE.persistence.getTask(entityId));
                     break;
+                case RESUME_TASK:
+                    INSTANCE.queueManager.resumeTask(entityId);
+                    break;
                 case RUN_FLOW:
                     INSTANCE.queueManager.startFlow(entityId);
                     break;

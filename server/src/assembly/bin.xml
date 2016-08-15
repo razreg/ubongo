@@ -25,7 +25,7 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>../infra/persistence/src/main/resources/database-resources</directory>
+            <directory>../infra/persistence/src/main/resources/db</directory>
             <outputDirectory>db</outputDirectory>
             <includes>
                 <include>*</include>

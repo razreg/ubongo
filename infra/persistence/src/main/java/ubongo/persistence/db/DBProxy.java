@@ -490,23 +490,22 @@ public class DBProxy {
         return flows;
     }
 
-    public void resumeTask(Task task) throws DBProxyException {
+    public void resumeTask(int taskId) throws DBProxyException {
         connect();
         if (logger.isDebugEnabled()) {
-            logger.debug("Updating status in DB to " + TaskStatus.NEW + " for taskId=" +
-                    task.getId());
+            logger.debug("Updating status in DB to " + TaskStatus.NEW + " for taskId=" + taskId);
         }
         String tableName = getTableName(DBConstants.TASKS_TABLE_NAME);
         try {
             String sql = Queries.getQuery(DBConstants.QUERY_RESUME_TASK)
                     .replace("$tasksTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, task.getId()); // id of task to resume
+            statement.setInt(1, taskId);
             executeUpdate(statement);
         } catch (SQLException e) {
-            throw new DBProxyException("Failed to resume task (taskId=" + task.getId() + ").", e);
+            throw new DBProxyException("Failed to resume task (taskId=" + taskId + ").", e);
         }
-        updateFlowStatus(task.getId());
+        updateFlowStatus(taskId);
     }
 
     public Void clearAllDebugTables() throws DBProxyException {

@@ -13,7 +13,7 @@ import java.util.Properties;
 public class Queries {
 
     public static String propFilePath = null;
-    public static final String propFileName = "database-resources/queries.properties";
+    public static final String propFileName = "db/queries.properties";
     private static Properties props;
 
     public static Properties getQueries() throws SQLException {

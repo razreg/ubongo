@@ -1,4 +1,8 @@
 function TasksController($scope, $http, uiGridConstants) {
+
+  var GOOD_STYLE = {paddingTop: '4px', color: 'green'};
+  var BAD_STYLE = {paddingTop: '4px', color: 'red'};
+
   $scope.defaultFlowText = {value: 'Loading flows...'};
   $scope.flows = [];
   $scope.err = {
@@ -60,6 +64,8 @@ function TasksController($scope, $http, uiGridConstants) {
         var details = $.grep($scope.currFlow.tasks, function(elem){
           return elem.id == $scope.taskSelected[0].id;
         })[0];
+        details.actions = $scope.currTask.actions;
+        $scope.currTask = details;
         $scope.taskDetailsGridOptions.data = [
           {property: 'Status', value: details.status},
           {property: 'Unit name', value: details.unit.name},
@@ -68,21 +74,20 @@ function TasksController($scope, $http, uiGridConstants) {
           {property: 'Output path', value: details.outputPath}
         ];
         var taskStatus = details.status.toUpperCase();
-        $scope.currTask = {
-          actions: {
+        $scope.currTask.actions = {
             act_cancel: taskStatus == 'CREATED' || taskStatus == 'NEW' || taskStatus == 'PENDING',
             act_kill: taskStatus == 'PROCESSING',
-            act_resume: taskStatus == 'ON_HOLD' || taskStatus == 'FAILED'
-          }
+            act_resume: taskStatus == 'ON_HOLD' || taskStatus == 'FAILED' ||
+              taskStatus == 'STOPPED' || taskStatus == 'CANCELED'
         };
       }
     });
   };
 
-  function displayMsg(disp, msg, color) {
+  function displayMsg(disp, msg, style) {
     $scope.err.display = disp;
     $scope.err.msg = msg;
-    $scope.err.style.color = color;
+    $scope.err.style = style;
   }
 
   $scope.loadFlow = function() {
@@ -111,7 +116,7 @@ function TasksController($scope, $http, uiGridConstants) {
       })
       .error(function(data, status, headers, config) {
         $scope.currFlow = {status: 'New'};
-        displayMsg(true, 'Failed to load flow details', 'red');
+        displayMsg(true, 'Failed to load flow details', BAD_STYLE);
         $scope.taskGridOptions.data = [];
       });
   };
@@ -134,30 +139,30 @@ function TasksController($scope, $http, uiGridConstants) {
   $scope.cancelTask = function() {
     $http.post(getApiTaskActionPath('cancel'))
       .success(function(data, status, headers, config) {
-        displayMsg(true, 'Task canceled successfully', 'green');
+        displayMsg(true, 'Task canceled successfully', GOOD_STYLE);
       })
       .error(function(data, status, headers, config) {
-        displayMsg(true, 'Failed to cancel task', 'red');
+        displayMsg(true, 'Failed to cancel task', BAD_STYLE);
       });
   };
 
   $scope.resumeTask = function() {
     $http.post(getApiTaskActionPath('resume'))
       .success(function(data, status, headers, config) {
-        displayMsg(true, 'Task resumed successfully', 'green');
+        displayMsg(true, 'Task resumed successfully', GOOD_STYLE);
       })
       .error(function(data, status, headers, config) {
-        displayMsg(true, 'Failed to resume task', 'red');
+        displayMsg(true, 'Failed to resume task', BAD_STYLE);
       });
   };
 
   $scope.killTask = function() {
     $http.post(getApiTaskActionPath('stop'))
       .success(function(data, status, headers, config) {
-        displayMsg(true, 'A request to stop task was sent to the server', 'green');
+        displayMsg(true, 'A request to stop task was sent to the server', GOOD_STYLE);
       })
       .error(function(data, status, headers, config) {
-        displayMsg(true, 'Failed to stop task', 'red');
+        displayMsg(true, 'Failed to stop task', BAD_STYLE);
       });
   };
 

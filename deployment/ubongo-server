@@ -10,11 +10,11 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 SERVICE_NAME=UbongoServer
-LOG_DIR="$DIR"/logs
-CONF_PATH="$DIR"/config/ubongo-config.xml
-UNITS_PATH="$DIR"/units
-PATH_TO_JAR="$DIR"/ubongo-server.jar
-PID_PATH_NAME="$DIR"/ubongo-server-pid
+LOG_DIR="$DIR"/../logs
+CONF_PATH="$DIR"/../config/ubongo-config.xml
+UNITS_PATH="$DIR"/../units
+PATH_TO_JAR="$DIR"/../ubongo-server.jar
+PID_PATH_NAME="$DIR"/../ubongo-server-pid
 
 case $1 in
     start)

@@ -177,10 +177,10 @@ public interface Persistence {
     /**
      * Resumes the given task; namely, changes a task status from 'On Hold' to 'New'.
      * If the old status is not 'On Hold', this method has no effect.
-     * @param task to resume - only taskId is used.
+     * @param taskId of task to resume - only taskId is used.
      * @throws PersistenceException if the update has failed.
      */
-    void resumeTask(Task task) throws PersistenceException;
+    void resumeTask(int taskId) throws PersistenceException;
 
     /**
      * Retrieves all execution requests in status 'New' in the DB.

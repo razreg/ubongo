@@ -254,11 +254,11 @@ public class PersistenceImpl implements Persistence {
     }
 
     @Override
-    public void resumeTask(Task task) throws PersistenceException {
+    public void resumeTask(int taskId) throws PersistenceException {
         int numRetries = 0;
         while (numRetries++ < MAX_NUM_RETRIES) {
             try {
-                dbProxy.resumeTask(task);
+                dbProxy.resumeTask(taskId);
                 return;
             } catch (DBProxyException e) {
                 DBProxyException ret;
