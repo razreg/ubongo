@@ -17,7 +17,7 @@ function FlowContextController($scope, $http) {
   $scope.flowSourceAnalysis = function() {
     if ($scope.flow.analysisNames.length === 0) {
       $scope.flow.defaultAnalysisText = 'Loading analysis names...';
-      $http.get('/rest/api/analyses/names')
+      $http.get('rest/api/analyses/names')
         .success(function (data, status, headers, config) {
           if (Array.isArray(data)) {
             $scope.flow.analysisNames = data;

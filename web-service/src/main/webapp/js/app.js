@@ -15,6 +15,7 @@ angular.module('ubongoApp', ['ngRoute', 'ui.grid', 'ui.grid.selection', 'ui.grid
     $locationProvider.html5Mode(false);
   }])
   .controller('TasksController', TasksController)
+  .controller('MachinesController', MachinesController)
   .controller('FlowController', FlowController)
   .controller('FlowContextController', FlowContextController)
   .controller('UnitsSelectionController', UnitsSelectionController);

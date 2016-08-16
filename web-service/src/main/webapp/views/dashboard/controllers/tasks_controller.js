@@ -18,7 +18,7 @@ function TasksController($scope, $http, uiGridConstants) {
       act_resume: false
     }
   };
-  $http.get('/rest/api/flows')
+  $http.get('rest/api/flows')
     .success(function(data, status, headers, config) {
       $scope.flows = data;
       if ($scope.flows.length > 0) {
@@ -92,7 +92,7 @@ function TasksController($scope, $http, uiGridConstants) {
 
   $scope.loadFlow = function() {
     displayMsg(false);
-    $http.get('/rest/api/flows/' + $scope.selectFlow.flowId + '/tasks')
+    $http.get('rest/api/flows/' + $scope.selectFlow.flowId + '/tasks')
       .success(function(data, status, headers, config) {
         if (data.length > 0) {
           $scope.currFlow = {
@@ -167,6 +167,6 @@ function TasksController($scope, $http, uiGridConstants) {
   };
 
   function getApiTaskActionPath(action) {
-    return '/rest/api/flows/' + $scope.selectFlow.flowId + '/tasks/' + $scope.currTask.id + '?action=' + action;
+    return 'rest/api/flows/' + $scope.selectFlow.flowId + '/tasks/' + $scope.currTask.id + '?action=' + action;
   }
 }

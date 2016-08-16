@@ -29,7 +29,7 @@ function FlowController($scope, $http) {
           }
         };
       });
-    $http.post('/rest/api/flows', {
+    $http.post('rest/api/flows', {
         studyName: study,
         tasks: flowTasks
       })
@@ -46,7 +46,7 @@ function FlowController($scope, $http) {
   };
 
   function executeFlow(flowId) {
-    $http.post('/rest/api/flows/' + flowId + '?action=run')
+    $http.post('rest/api/flows/' + flowId + '?action=run')
       .success(function(data, status, headers, config) {
         showSubmitMsg('Flow sent for execution', GOOD_STYLE);
         // TODO make sure there will be no submission of a duplicate flow (disable the button)

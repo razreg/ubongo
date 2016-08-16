@@ -3,7 +3,7 @@ function UnitsSelectionController($scope, $http) {
   $scope.registerUnitsScope($scope);
   $scope.units = [];
   $scope.defaultUnitText = {value: 'Loading units...'};
-  $http.get('/rest/api/units')
+  $http.get('rest/api/units')
     .success(function(data, status, headers, config) {
       $scope.units = data;
       if (data.length > 0) {
