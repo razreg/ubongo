@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ubongo.common.datatypes.*;
 import ubongo.common.datatypes.unit.Unit;
-import ubongo.common.datatypes.unit.UnitAdder;
 import ubongo.persistence.Configuration;
 import ubongo.persistence.Persistence;
 import ubongo.persistence.PersistenceException;

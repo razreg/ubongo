@@ -1,6 +1,8 @@
-package ubongo.common.datatypes.unit;
+package ubongo.rest;
 
 import ubongo.common.constants.MachineConstants;
+import ubongo.common.datatypes.unit.Unit;
+import ubongo.common.datatypes.unit.UnitParameter;
 import ubongo.persistence.Configuration;
 
 import java.io.PrintWriter;

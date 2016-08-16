@@ -32,6 +32,11 @@
             <artifactId>jaxrs-ri</artifactId>
             <version>2.13</version>
         </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -39,7 +44,10 @@
 
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>src/main/resources/log4j</directory>
+            </resource>
+            <resource>
+                <directory>../data</directory>
             </resource>
             <resource>
                 <directory>../infra/persistence/src/main/resources</directory>
@@ -57,6 +65,7 @@
                             <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>
+                    <containerConfigXML>src/main/resources/context.xml</containerConfigXML>
                 </configuration>
             </plugin>
         </plugins>

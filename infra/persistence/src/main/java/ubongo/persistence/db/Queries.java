@@ -13,23 +13,27 @@ import java.util.Properties;
 public class Queries {
 
     public static String propFilePath = null;
-    public static final String propFileName = "db/queries.properties";
     private static Properties props;
+
+    // TODO make this not static and pass a path to the queries.properties file in the constructor
 
     public static Properties getQueries() throws SQLException {
         if (props == null) {
-            String errorMsg = "Unable to load property file: " + propFileName;
+            String errorMsg = "Unable to load property file"; // TODO improve msg
             InputStream is;
             try {
                 if (propFilePath == null) {
+                    /*
                     // TODO get path in a better way
                     Path path = Paths.get(Queries.class.getProtectionDomain().getCodeSource()
                             .getLocation().toURI());
                     propFilePath = Paths.get(path.toString(), propFileName).toString();
+                    */
+                    propFilePath = "/specific/netapp5/hezi/razregev/db/queries.properties";
                 }
                 errorMsg = "Unable to load property file: " + propFilePath;
                 is = new FileInputStream(propFilePath);
-            } catch (FileNotFoundException | URISyntaxException e) {
+            } catch (FileNotFoundException e) {
                 throw new SQLException(errorMsg);
             }
             props = new Properties();

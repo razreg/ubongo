@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Appenders>
-        <RollingFile name="file-log" fileName="${sys:log_directory}/server.${date:yyyy-MM-dd}.log"
-                     filePattern="${sys:log_directory}/server.%d{yyyy-MM-dd}.log"
+        <RollingFile name="file-log" fileName="${sys:log_directory}/machine.${date:yyyy-MM-dd}.log"
+                     filePattern="${sys:log_directory}/machine.%d{yyyy-MM-dd}.log"
                      immediateFlush="true" append="true">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level [%t] %c{1} - %msg%n"/>
             <Policies>

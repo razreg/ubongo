@@ -5,10 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ubongo.common.constants.MachineConstants;
 import ubongo.common.constants.SystemConstants;
-import ubongo.common.datatypes.Machine;
-import ubongo.common.datatypes.MachineStatistics;
-import ubongo.common.datatypes.Task;
-import ubongo.common.datatypes.TaskStatus;
+import ubongo.common.datatypes.*;
 
 public enum ExecutionProxy {
 
@@ -42,7 +39,6 @@ public enum ExecutionProxy {
     }
 
     private void sendRequestToMachine(Task task, String queue, String request) {
-        /* TODO uncomment
         logger.info("Sending request to the machine. Queue = [" + queue+ "] RequestTask = [ "+ request+ "] id = [" + task.getId() + "]");
         try {
             ConnectionFactory factory = new ConnectionFactory();
@@ -61,10 +57,7 @@ public enum ExecutionProxy {
             logger.error("Failed sending task to machine. Task id = [" + task.getId() + "] Machine = [" + task.getMachine().getAddress() + "] error: " + e.getMessage());
             task.setStatus(TaskStatus.FAILED);
             queueManager.updateTaskAfterExecution(task);
-        } */
-        // TODO remove
-        task.setStatus(TaskStatus.FAILED);
-        queueManager.updateTaskAfterExecution(task);
+        }
     }
 
 }

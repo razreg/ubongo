@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.javaws.Globals;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ubongo.common.Globals;
 import ubongo.common.datatypes.FlowData;
 import ubongo.common.datatypes.Machine;
 import ubongo.common.datatypes.Task;
@@ -15,9 +15,13 @@ import ubongo.persistence.Configuration;
 import ubongo.persistence.PersistenceException;
 import ubongo.persistence.db.Queries;
 
+import javax.servlet.Servlet;
+import javax.servlet.ServletContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.ext.ExceptionMapper;
 import javax.xml.bind.UnmarshalException;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -26,18 +30,21 @@ import java.util.List;
 @Path("/api")
 public final class RestService {
 
-    // TODO add log messages
+    @Context
+    ServletContext context;
+
+    private static boolean serviceProviderInitAttempted = false;
+    private static ServiceProvider serviceProvider = null;
+
+    private static final int DEFAULT_QUERY_LIMIT_FALLBACK = 1000;
+    private static boolean defaultQueryLimitRetrieved = false;
+    private static int defaultQueryLimit = DEFAULT_QUERY_LIMIT_FALLBACK;
+
     private static Logger logger = LogManager.getLogger(RestService.class);
 
-    // TODO move section to configuration?
-    private static final int DEFAULT_QUERY_LIMIT = 1000;
-    private static final String CONFIG_PATH =
-            Paths.get(Globals.SERVICE_SOURCES_ROOT, "data/config/ubongo-config-raz.xml").toString();
-    private static final String UNITS_DIR_PATH =
-            Paths.get(Globals.SERVICE_SOURCES_ROOT, "data/unit_settings").toString(); // TODO move to config file?
-
     private static final String APP_VERSION = "1.0.0";
-    private static ServiceProvider serviceProvider = null;
+    private static final String TOMCAT_CONTEXT_CONFIGURED =
+            "Please make sure context.xml is configured correctly in the Tomcat directory.";
     private static final String FAILURE_MSG =
             "The ServiceProvider failed to start. Please check the server's configuration and restart it.";
 
@@ -52,9 +59,7 @@ public final class RestService {
     @Path("machines")
     @Produces(MediaType.APPLICATION_JSON)
     public String getAllMachines() throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         ObjectMapper mapper = new ObjectMapper();
         String response;
         try {
@@ -75,14 +80,12 @@ public final class RestService {
     @Path("analyses/names")
     @Produces(MediaType.APPLICATION_JSON)
     public String getAllAnalysisNames(@QueryParam("limit") int limit) throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         ObjectMapper mapper = new ObjectMapper();
         String response;
         try {
             List<String> analysisNames =
-                    serviceProvider.getAllAnalysisNames(limit > 0 ? limit : DEFAULT_QUERY_LIMIT);
+                    serviceProvider.getAllAnalysisNames(limit > 0 ? limit : defaultQueryLimit);
             if (analysisNames == null) {
                 throw new UbongoHttpException(500, "Failed to retrieve analysis names from DB.");
             }
@@ -99,13 +102,11 @@ public final class RestService {
     @Path("flows")
     @Produces(MediaType.APPLICATION_JSON)
     public String getAllFlows(@QueryParam("limit") int limit) throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         ObjectMapper mapper = new ObjectMapper();
         String response;
         try {
-            List<FlowData> flows = serviceProvider.getAllFlows(limit > 0 ? limit : DEFAULT_QUERY_LIMIT);
+            List<FlowData> flows = serviceProvider.getAllFlows(limit > 0 ? limit : defaultQueryLimit);
             if (flows == null) {
                 throw new UbongoHttpException(500, "Failed to retrieve flows from DB.");
             }
@@ -123,9 +124,7 @@ public final class RestService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String createFlow(String requestBody) throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         int flow;
         String studyName;
         List<Task> tasks;
@@ -158,9 +157,7 @@ public final class RestService {
     public void performActionOnFlow(@PathParam("flowId") int flowId,
                                     @NotNull @QueryParam("action") ResourceAction action)
             throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         switch (action) {
             case CANCEL:
                 try {
@@ -185,13 +182,11 @@ public final class RestService {
     @Path("flows/all/tasks")
     @Produces(MediaType.APPLICATION_JSON)
     public String getAllTasks(@QueryParam("limit") int limit) throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         ObjectMapper mapper = new ObjectMapper();
         String response;
         try {
-            List<Task> tasks = serviceProvider.getAllTasks(limit > 0 ? limit : DEFAULT_QUERY_LIMIT);
+            List<Task> tasks = serviceProvider.getAllTasks(limit > 0 ? limit : defaultQueryLimit);
             if (tasks == null) {
                 throw new UbongoHttpException(500, "Failed to retrieve tasks from DB.");
             }
@@ -208,9 +203,7 @@ public final class RestService {
     @Path("flows/{flowId}/tasks")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTasks(@DefaultValue("-1") @PathParam("flowId") int flowId) throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         if (flowId < 0) {
             throw new UbongoHttpException(400, "Flow ID must be a positive integer.");
         }
@@ -238,9 +231,7 @@ public final class RestService {
                                     @PathParam("taskId") int taskId,
                                     @QueryParam("action") ResourceAction action)
             throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         Task task;
         try {
             task = serviceProvider.getTask(taskId);
@@ -282,9 +273,7 @@ public final class RestService {
     @Produces(MediaType.APPLICATION_JSON)
     public String getTaskLogs(@PathParam("flowId") int flowId,
                               @PathParam("taskId") int taskId) throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         ObjectMapper mapper = new ObjectMapper();
         String response;
         try {
@@ -304,9 +293,7 @@ public final class RestService {
     @Path("log")
     @Produces(MediaType.APPLICATION_JSON)
     public String getServerLog() throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         ObjectMapper mapper = new ObjectMapper();
         String response;
         try {
@@ -326,9 +313,7 @@ public final class RestService {
     @Path("units")
     @Produces(MediaType.APPLICATION_JSON)
     public String getAllUnits() throws UbongoHttpException {
-        if (serviceProvider == null) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
+        init();
         ObjectMapper mapper = new ObjectMapper();
         String response;
         try {
@@ -345,15 +330,63 @@ public final class RestService {
         return response;
     }
 
-    public RestService() {
-        Queries.propFilePath = Paths.get(Globals.SERVICE_SOURCES_ROOT, Queries.propFileName).toString();
-        try {
-            if (serviceProvider == null) {
-                Configuration configuration = Configuration.loadConfiguration(CONFIG_PATH);
-                serviceProvider = new ServiceProviderImpl(configuration, UNITS_DIR_PATH, configuration.getDebug());
-            }
-        } catch (UnmarshalException e) {
-            serviceProvider = null;
+    private void init() throws UbongoHttpException {
+        if (serviceProvider == null) {
+            initServiceProvider();
         }
+        if (!defaultQueryLimitRetrieved) {
+            initDBQueriesParams();
+        }
+    }
+
+    private void initServiceProvider() throws UbongoHttpException {
+        if (serviceProviderInitAttempted) {
+            throw new UbongoHttpException(500, FAILURE_MSG);
+        }
+        try {
+            if (context == null) {
+                throw new UbongoHttpException(500,
+                        "Failed to retrieve servlet context. " + TOMCAT_CONTEXT_CONFIGURED);
+            }
+            String configPath = getContextParam("ubongo.config");
+            String unitsPath = getContextParam("ubongo.units.dir");
+            Configuration configuration;
+            try {
+                configuration = Configuration.loadConfiguration(configPath);
+            } catch (UnmarshalException e) {
+                throw new UbongoHttpException(500, FAILURE_MSG);
+            }
+            serviceProvider = new ServiceProviderImpl(configuration, unitsPath, configuration.getDebug());
+        } catch (UbongoHttpException e) {
+            serviceProvider = null;
+            throw e;
+        } catch (Exception e) {
+            throw new UbongoHttpException(500,
+                    "The service has encountered an unexpected exception during initialization. Details: " + e.getMessage());
+        }
+        finally {
+            serviceProviderInitAttempted = true;
+        }
+    }
+
+    private void initDBQueriesParams() throws UbongoHttpException {
+        String value = context.getInitParameter("ubongo.query.limit.default");
+        try {
+            defaultQueryLimit = value == null ? DEFAULT_QUERY_LIMIT_FALLBACK : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            defaultQueryLimit = DEFAULT_QUERY_LIMIT_FALLBACK;
+        } finally {
+            defaultQueryLimitRetrieved = true;
+        }
+        Queries.propFilePath = getContextParam("ubongo.db.queries"); // TODO don't pass like this
+    }
+
+    private String getContextParam(String paramName) throws UbongoHttpException {
+        String value = context.getInitParameter(paramName);
+        if (value == null) {
+            throw new UbongoHttpException(500,
+                    paramName + " could not be found in Tomcat context. " + TOMCAT_CONTEXT_CONFIGURED);
+        }
+        return value;
     }
 }

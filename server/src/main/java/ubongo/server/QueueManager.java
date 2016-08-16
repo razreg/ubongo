@@ -17,7 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-// TODO instead of notifyFatal make the executionImpl listen on some object
 public class QueueManager {
 
     // TODO make these values configurable
@@ -128,15 +127,18 @@ public class QueueManager {
 
     /**
      * This method is called by the ExecutionProxy {@link ExecutionProxy} to update the system after a task
-     * has been completed, stopped or failed. First, the status of task is persisted in the DB. Second, if the task
-     * has completed successfully, the QueueManager updates tasks which depend on the completion of task by
-     * calling handleCompletedTask {@link #handleCompletedTask(Task)}.
+     * has been completed, stopped or failed. First, the status of task is persisted in the DB. Second,
+     * the QueueManager updates tasks which depend on the completion of task by calling handleCompletedTask
+     * {@link #handleCompletedTask(Task)}.
      * @param task to update based on status.
      */
     synchronized public void updateTaskAfterExecution(Task task) {
         try {
             persistence.updateTaskStatus(task);
-            if (task.getStatus() == TaskStatus.COMPLETED) {
+            TaskStatus status = task.getStatus();
+            if (status == TaskStatus.COMPLETED ||
+                status == TaskStatus.FAILED ||
+                status == TaskStatus.STOPPED) {
                 synchronized (dependencyMap) {
                     while (updatingDependencies) {
                         dependencyMap.wait();
@@ -149,7 +151,7 @@ public class QueueManager {
             }
         } catch (PersistenceException | InterruptedException e) {
             logger.fatal("Failed to update task in DB");
-            ExecutionServer.notifyFatal(e); // TODO what now?
+            ExecutionServer.notifyFatal(e);
         }
     }
 
@@ -170,6 +172,8 @@ public class QueueManager {
      * If all of these tasks were completed, it means that tasks with greater serial numbers - which depend on the
      * previous ones - can be now executed. The status of these tasks is updated to 'New' so they will be picked up by
      * the queue producer and executed in future cycles, now that all of their dependencies are completed.
+     * On the other hand, if some task failed or was stopped, then its dependents (those with a greater serial number)
+     * cannot be executed until manual intervention and therefore will change status to On_Hold.
      * @param task to be handled.
      * @return true iff some tasks were updated to 'New' as a result of the completion of task.
      * @throws PersistenceException if updating the DB has failed.
@@ -185,12 +189,16 @@ public class QueueManager {
         Set<Integer> taskIdsSet = dependencyKey.getSet();
         if (taskIdsSet != null) {
             taskIdsSet.remove(task.getId());
-            if (taskIdsSet.isEmpty()) {
+            // if the following tasks can be executed or should be on hold
+            if (taskIdsSet.isEmpty() || task.getStatus() == TaskStatus.FAILED || task.getStatus() == TaskStatus.STOPPED) {
                 Set<Task> pendingTasks = dependencyMap.get(dependencyKey.getId());
                 if (pendingTasks != null) {
+                    TaskStatus newStatus = task.getStatus() == TaskStatus.COMPLETED ?
+                            TaskStatus.NEW : TaskStatus.ON_HOLD;
                     /* send pendingTasks back to DB as NEW so they will be retrieved by the queue
-                       and next time it will be able to run them (this allows orderly dependency verification) */
-                    pendingTasks.forEach(t -> t.setStatus(TaskStatus.NEW));
+                       and next time it will be able to run them (this allows orderly dependency verification),
+                       or change status to On Hold if the flow is stuck */
+                    pendingTasks.forEach(t -> t.setStatus(newStatus));
                     persistence.updateTasksStatus(pendingTasks);
                 }
                 synchronized(producerLock) {
@@ -280,10 +288,10 @@ public class QueueManager {
             } catch (MachinesManagementException e) {
                 logger.fatal("Queue consumer thread failed to find available machine to run task. Details: " + e.getMessage());
                 logger.fatal(e.getMessage());
-                ExecutionServer.notifyFatal(e); // TODO what now?
+                ExecutionServer.notifyFatal(e);
             } catch (PersistenceException e) {
                 logger.fatal("Failed to update task in DB");
-                ExecutionServer.notifyFatal(e); // TODO what now?
+                ExecutionServer.notifyFatal(e);
             } catch (CloneNotSupportedException e) {
                 // not really possible because clone is supported for task
             }

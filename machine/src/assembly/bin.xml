@@ -24,19 +24,12 @@
                 <include>*</include>
             </includes>
         </fileSet>
-        <fileSet>
-            <directory>../infra/persistence/src/main/resources/db</directory>
-            <outputDirectory>db</outputDirectory>
-            <includes>
-                <include>*</include>
-            </includes>
-        </fileSet>
 
         <fileSet>
             <directory>../deployment</directory>
             <outputDirectory>scripts</outputDirectory>
             <includes>
-                <include>ubongo-server*</include>
+                <include>ubongo-machine*</include>
             </includes>
             <lineEnding>unix</lineEnding>
             <fileMode>0755</fileMode>
@@ -45,7 +38,7 @@
             <directory>target</directory>
             <outputDirectory>.</outputDirectory>
             <includes>
-                <include>ubongo-server.jar</include>
+                <include>ubongo-machine.jar</include>
             </includes>
         </fileSet>
     </fileSets>
