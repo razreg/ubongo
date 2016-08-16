@@ -12,23 +12,28 @@ import ubongo.persistence.Configuration;
 import ubongo.persistence.Persistence;
 import ubongo.persistence.PersistenceException;
 import ubongo.persistence.PersistenceImpl;
-import ubongo.persistence.db.Queries;
 
 import javax.xml.bind.UnmarshalException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * This class expects the following JVM options (i.e., variables passed as "java -Dvar_name=value -jar jar_name"):
+ *  -Dconfig - path to the ubongo-config.xml file (e.g., /some/path/config/ubongo-config.xml)
+ *  -Dunits_path - path to the units directory (e.g., /some/path/units)
+ *  -Dqueries - path to the queries.properties file (e.g., /some/path/db/queries.properties)
+ */
 public class ExecutionServer {
 
     private static ExecutionServer INSTANCE;
 
     private static final String CONFIG_PATH = "config";
     private static final String UNITS_DIR_PATH = "units_path";
+    private static final String QUERIES_PATH = "queries";
 
     private static volatile boolean keepRunning = true;
     private static final int SECONDS_INTERVAL_FOR_REQUESTS_HANDLER = 60;
@@ -43,9 +48,10 @@ public class ExecutionServer {
     public static void main(String[] args) {
         String configPath = System.getProperty(CONFIG_PATH);
         String unitsDirPath = System.getProperty(UNITS_DIR_PATH);
-        if (!validSystemVariables(configPath, unitsDirPath)) return;
+        String queriesPath = System.getProperty(QUERIES_PATH);
+        if (!validSystemVariables(configPath, unitsDirPath, queriesPath)) return;
         try {
-            INSTANCE = initServer(configPath, unitsDirPath);
+            INSTANCE = initServer(configPath, unitsDirPath, queriesPath);
         } catch (UnmarshalException e) {
             logger.error("Failed to init server.", e);
             return;
@@ -53,8 +59,8 @@ public class ExecutionServer {
         runServer();
     }
 
-    private static boolean validSystemVariables(String configPath, String unitsDirPath) {
-        String pattern = "Please supply %1$s path as run parameter: -%2$s=<path>";
+    private static boolean validSystemVariables(String configPath, String unitsDirPath, String queriesPath) {
+        String pattern = "Please supply %1$s path as run parameter: -D%2$s=<path>";
         boolean invalid;
         if (invalid = configPath == null) {
             System.out.format(pattern, "configuration", CONFIG_PATH);
@@ -63,15 +69,19 @@ public class ExecutionServer {
             System.out.format(pattern, "units directory", UNITS_DIR_PATH);
             invalid = true;
         }
+        if (queriesPath == null) {
+            System.out.format(pattern, "queries.properties", UNITS_DIR_PATH);
+            invalid = true;
+        }
         return !invalid;
     }
 
-    private static ExecutionServer initServer(String configPath, String unitsDirPath) throws UnmarshalException {
+    private static ExecutionServer initServer(String configPath, String unitsDirPath, String queriesPath) throws UnmarshalException {
         Configuration configuration = Configuration.loadConfiguration(configPath);
         boolean debug = configuration.getDebug();
         List<Machine> machines = configuration.getMachines();
         Persistence persistence = new PersistenceImpl(unitsDirPath, configuration.getDbConnectionProperties(),
-                configuration.getSshConnectionProperties(), machines, debug);
+                configuration.getSshConnectionProperties(), machines, queriesPath, debug);
         return new ExecutionServer(persistence, machines);
     }
 

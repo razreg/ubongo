@@ -36,16 +36,13 @@ public class DBProxy {
     private DBConnectionProperties dbProperties;
     private int localPort;
     private UnitFetcher unitFetcher;
+    private QueriesProvider queriesProvider;
 
     private boolean debug = false;
 
-    public DBProxy(UnitFetcher unitFetcher,
-                   DBConnectionProperties dbConnectionProperties, List<Machine> machines) {
-        this(unitFetcher, dbConnectionProperties, machines, false);
-    }
-
     public DBProxy(UnitFetcher unitFetcher, DBConnectionProperties dbConnectionProperties,
-                   List<Machine> machines, boolean debug) {
+                   List<Machine> machines, String queriesPath, boolean debug) {
+        this.queriesProvider = new QueriesProvider(queriesPath);
         this.dbProperties = dbConnectionProperties;
         this.unitFetcher = unitFetcher;
         this.machines = machines == null ? new HashMap<>() : machines.stream()
@@ -55,18 +52,11 @@ public class DBProxy {
     }
 
     public DBProxy(UnitFetcher unitFetcher, DBConnectionProperties dbConnectionProperties,
-                   SSHConnectionProperties sshConnectionProperties, List<Machine> machines) {
-        this(unitFetcher, dbConnectionProperties, machines);
+                   SSHConnectionProperties sshConnectionProperties, List<Machine> machines,
+                   String queriesPath, boolean debug) {
+        this(unitFetcher, dbConnectionProperties, machines, queriesPath, debug);
         this.sshProperties = sshConnectionProperties;
         this.useSSH = true;
-    }
-
-    // For debugging and tests
-    public DBProxy(UnitFetcher unitFetcher, DBConnectionProperties dbConnectionProperties,
-                   SSHConnectionProperties sshConnectionProperties,
-                   List<Machine> machines, boolean debug) {
-        this(unitFetcher, dbConnectionProperties, sshConnectionProperties, machines);
-        this.debug = debug;
     }
 
     public Void start() throws DBProxyException {
@@ -156,7 +146,7 @@ public class DBProxy {
         }
         String tableName = getTableName(DBConstants.TASKS_TABLE_NAME);
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_UPDATE_TASK_STATUS)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_UPDATE_TASK_STATUS)
                     .replace("$tasksTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             String status = getStatusString(task.getStatus());
@@ -201,7 +191,7 @@ public class DBProxy {
                 logger.warn(errMsg);
                 throw new DBProxyException(errMsg);
             }
-            String sql = Queries.getQuery(DBConstants.QUERY_CREATE_ANALYSIS)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_CREATE_ANALYSIS)
                     .replace("$unitsTable", unitsTableName)
                     .replace("$values", values);
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -219,7 +209,7 @@ public class DBProxy {
         String tableName = getTableName(DBConstants.UNITS_TABLE_NAME);
         String errorMsg = "Failed to retrieve units from DB";
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_GET_UNITS)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_UNITS)
                     .replace("$unitsTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, analysisName);
@@ -240,7 +230,7 @@ public class DBProxy {
         String tableName = getTableName(DBConstants.UNITS_TABLE_NAME);
         String errorMsg = "Failed to retrieve analyses from DB";
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_GET_ANALYSIS_NAMES)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_ANALYSIS_NAMES)
                     .replace("$unitsTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             ResultSet resultSet = executeQuery(statement);
@@ -259,7 +249,7 @@ public class DBProxy {
         String tableName = getTableName(DBConstants.MACHINES_TABLE_NAME);
         String errorMsg = "Failed to retrieve machines from DB";
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_GET_MACHINES)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_MACHINES)
                     .replace("$machinesTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             ResultSet resultSet = executeQuery(statement);
@@ -276,7 +266,7 @@ public class DBProxy {
         connect();
         String machinesTableName = getTableName(DBConstants.MACHINES_TABLE_NAME);
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_UPDATE_MACHINES)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_UPDATE_MACHINES)
                     .replace("$machinesTable", machinesTableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setBoolean(1, machine.isActive());
@@ -298,7 +288,7 @@ public class DBProxy {
                 logger.warn(errMsg);
                 throw new DBProxyException(errMsg);
             }
-            String sql = Queries.getQuery(DBConstants.QUERY_SAVE_MACHINES)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_SAVE_MACHINES)
                     .replace("$machinesTable", machinesTableName)
                     .replace("$values", values);
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -315,7 +305,7 @@ public class DBProxy {
         String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
         String errorMsg = "Failed to retrieve requests from DB.";
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_GET_NEW_REQUESTS)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_NEW_REQUESTS)
                     .replace("$requestsTable", requestsTableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             ResultSet resultSet = executeQuery(statement);
@@ -332,7 +322,7 @@ public class DBProxy {
         connect();
         String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_UPDATE_REQUEST_STATUS)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_UPDATE_REQUEST_STATUS)
                     .replace("$requestsTable", requestsTableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, request.getStatus().toString());
@@ -349,7 +339,7 @@ public class DBProxy {
         connect();
         String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_CREATE_REQUEST)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_CREATE_REQUEST)
                     .replace("$requestsTable", requestsTableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, request.getEntityId());
@@ -375,7 +365,7 @@ public class DBProxy {
                 logger.warn(errMsg);
                 throw new DBProxyException(errMsg);
             }
-            String sql = Queries.getQuery(DBConstants.QUERY_CREATE_FLOW)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_CREATE_FLOW)
                     .replace("$flowsTable", flowsTableName)
                     .replace("$tasksTable", tasksTableName)
                     .replace("$values", values);
@@ -396,7 +386,7 @@ public class DBProxy {
         connect();
         String tasksTableName = getTableName(DBConstants.TASKS_TABLE_NAME);
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_START_FLOW)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_START_FLOW)
                     .replace("$tasksTable", tasksTableName);
             PreparedStatement statement =
                     connection.prepareStatement(sql);
@@ -476,7 +466,7 @@ public class DBProxy {
         String flowsTableName = getTableName(DBConstants.FLOWS_TABLE_NAME);
         String errorMsg = "Failed to retrieve flows from DB.";
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_GET_ALL_FLOWS)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_ALL_FLOWS)
                     .replace("$flowsTable", flowsTableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, limit);
@@ -497,7 +487,7 @@ public class DBProxy {
         }
         String tableName = getTableName(DBConstants.TASKS_TABLE_NAME);
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_RESUME_TASK)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_RESUME_TASK)
                     .replace("$tasksTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, taskId);
@@ -514,7 +504,7 @@ public class DBProxy {
         String flowsTableName = getTableName(DBConstants.FLOWS_TABLE_NAME, true);
         String unitsTableName = getTableName(DBConstants.UNITS_TABLE_NAME, true);
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_CLEAR_TABLES)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_CLEAR_TABLES)
                     .replace("$tasksTable", tasksTableName)
                     .replace("$flowsTable", flowsTableName)
                     .replace("$unitsTable", unitsTableName);
@@ -539,7 +529,7 @@ public class DBProxy {
         String flowsTableName = getTableName(DBConstants.FLOWS_TABLE_NAME);
         String errorMsg = "Failed to retrieve tasks from DB.";
         try {
-            String sql = Queries.getQuery(queryName)
+            String sql = queriesProvider.getQuery(queryName)
                     .replace("$flowsTable", flowsTableName)
                     .replace("$tasksTable", tasksTableName);
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -636,7 +626,7 @@ public class DBProxy {
         }
         String tableName = getTableName(DBConstants.FLOWS_TABLE_NAME);
         try {
-            String sql = Queries.getQuery(DBConstants.QUERY_UPDATE_FLOW_STATUS)
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_UPDATE_FLOW_STATUS)
                     .replace("$flowsTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, status.toString());
@@ -723,12 +713,10 @@ public class DBProxy {
 
     private String getMachinesAsValueList(List<Machine> machines) {
         // (id, address, active)
-        List<String> valuesList = new ArrayList<>();
-        for (Machine machine : machines) {
-            valuesList.add(Utils.concatStrings("(", machine.getId()+"", ", '",
-                    machine.getAddress(), "',", (machine.isActive() ? "1" : "0"), ")"));
-        }
-        return StringUtils.join(valuesList, ',');
+        return StringUtils.join(machines.stream()
+                .map(machine -> Utils.concatStrings("(", machine.getId()+"", ", '",
+                        machine.getAddress(), "',", (machine.isActive() ? "1" : "0"), ")"))
+                .collect(Collectors.toList()), ',');
     }
 
     private String getTasksAsValueList(List<Task> tasks) {

@@ -18,7 +18,7 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>../data/unit_settings</directory>
+            <directory>../data/units</directory>
             <outputDirectory>units</outputDirectory>
             <includes>
                 <include>*</include>

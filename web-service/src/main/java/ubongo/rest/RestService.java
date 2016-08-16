@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.javaws.Globals;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ubongo.common.datatypes.FlowData;
@@ -13,18 +12,14 @@ import ubongo.common.datatypes.Task;
 import ubongo.common.datatypes.unit.Unit;
 import ubongo.persistence.Configuration;
 import ubongo.persistence.PersistenceException;
-import ubongo.persistence.db.Queries;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ExceptionMapper;
 import javax.xml.bind.UnmarshalException;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 
 @Path("/api")
@@ -47,6 +42,66 @@ public final class RestService {
             "Please make sure context.xml is configured correctly in the Tomcat directory.";
     private static final String FAILURE_MSG =
             "The ServiceProvider failed to start. Please check the server's configuration and restart it.";
+
+    private void init() throws UbongoHttpException {
+        if (serviceProvider == null) {
+            initServiceProvider();
+        }
+        if (!defaultQueryLimitRetrieved) {
+            initDbQueryLimit();
+        }
+    }
+
+    private void initServiceProvider() throws UbongoHttpException {
+        if (serviceProviderInitAttempted) {
+            throw new UbongoHttpException(500, FAILURE_MSG);
+        }
+        try {
+            if (context == null) {
+                throw new UbongoHttpException(500,
+                        "Failed to retrieve servlet context. " + TOMCAT_CONTEXT_CONFIGURED);
+            }
+            String configPath = getContextParam("ubongo.config");
+            String unitsPath = getContextParam("ubongo.units.dir");
+            String queriesPath = getContextParam("ubongo.db.queries");
+            Configuration configuration;
+            try {
+                configuration = Configuration.loadConfiguration(configPath);
+            } catch (UnmarshalException e) {
+                throw new UbongoHttpException(500, FAILURE_MSG);
+            }
+            serviceProvider = new ServiceProviderImpl(configuration, unitsPath, queriesPath, configuration.getDebug());
+        } catch (UbongoHttpException e) {
+            serviceProvider = null;
+            throw e;
+        } catch (Exception e) {
+            throw new UbongoHttpException(500,
+                    "The service has encountered an unexpected exception during initialization. Details: " + e.getMessage());
+        }
+        finally {
+            serviceProviderInitAttempted = true;
+        }
+    }
+
+    private void initDbQueryLimit() throws UbongoHttpException {
+        String value = context.getInitParameter("ubongo.query.limit.default");
+        try {
+            defaultQueryLimit = value == null ? DEFAULT_QUERY_LIMIT_FALLBACK : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            defaultQueryLimit = DEFAULT_QUERY_LIMIT_FALLBACK;
+        } finally {
+            defaultQueryLimitRetrieved = true;
+        }
+    }
+
+    private String getContextParam(String paramName) throws UbongoHttpException {
+        String value = context.getInitParameter(paramName);
+        if (value == null) {
+            throw new UbongoHttpException(500,
+                    paramName + " could not be found in Tomcat context. " + TOMCAT_CONTEXT_CONFIGURED);
+        }
+        return value;
+    }
 
     @GET
     @Path("/version")
@@ -328,65 +383,5 @@ public final class RestService {
             throw new UbongoHttpException(500, "Failed to serialize units to JSON.");
         }
         return response;
-    }
-
-    private void init() throws UbongoHttpException {
-        if (serviceProvider == null) {
-            initServiceProvider();
-        }
-        if (!defaultQueryLimitRetrieved) {
-            initDBQueriesParams();
-        }
-    }
-
-    private void initServiceProvider() throws UbongoHttpException {
-        if (serviceProviderInitAttempted) {
-            throw new UbongoHttpException(500, FAILURE_MSG);
-        }
-        try {
-            if (context == null) {
-                throw new UbongoHttpException(500,
-                        "Failed to retrieve servlet context. " + TOMCAT_CONTEXT_CONFIGURED);
-            }
-            String configPath = getContextParam("ubongo.config");
-            String unitsPath = getContextParam("ubongo.units.dir");
-            Configuration configuration;
-            try {
-                configuration = Configuration.loadConfiguration(configPath);
-            } catch (UnmarshalException e) {
-                throw new UbongoHttpException(500, FAILURE_MSG);
-            }
-            serviceProvider = new ServiceProviderImpl(configuration, unitsPath, configuration.getDebug());
-        } catch (UbongoHttpException e) {
-            serviceProvider = null;
-            throw e;
-        } catch (Exception e) {
-            throw new UbongoHttpException(500,
-                    "The service has encountered an unexpected exception during initialization. Details: " + e.getMessage());
-        }
-        finally {
-            serviceProviderInitAttempted = true;
-        }
-    }
-
-    private void initDBQueriesParams() throws UbongoHttpException {
-        String value = context.getInitParameter("ubongo.query.limit.default");
-        try {
-            defaultQueryLimit = value == null ? DEFAULT_QUERY_LIMIT_FALLBACK : Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            defaultQueryLimit = DEFAULT_QUERY_LIMIT_FALLBACK;
-        } finally {
-            defaultQueryLimitRetrieved = true;
-        }
-        Queries.propFilePath = getContextParam("ubongo.db.queries"); // TODO don't pass like this
-    }
-
-    private String getContextParam(String paramName) throws UbongoHttpException {
-        String value = context.getInitParameter(paramName);
-        if (value == null) {
-            throw new UbongoHttpException(500,
-                    paramName + " could not be found in Tomcat context. " + TOMCAT_CONTEXT_CONFIGURED);
-        }
-        return value;
     }
 }

@@ -40,7 +40,7 @@
     </dependencies>
 
     <build>
-        <finalName>ubongo-web-service</finalName>
+        <finalName>ubongo</finalName>
 
         <resources>
             <resource>

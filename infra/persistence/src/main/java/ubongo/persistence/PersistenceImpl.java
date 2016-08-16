@@ -30,23 +30,17 @@ public class PersistenceImpl implements Persistence {
     private UnitFetcher unitFetcher;
 
     public PersistenceImpl(String unitSettingsDirPath, DBConnectionProperties dbConnectionProperties,
-                    SSHConnectionProperties sshConnectionProperties, List<Machine> machines) {
-        this(unitSettingsDirPath, dbConnectionProperties, sshConnectionProperties, machines, false);
-    }
-
-    public PersistenceImpl(String unitSettingsDirPath,
-                           DBConnectionProperties dbConnectionProperties, List<Machine> machines) {
-        this(unitSettingsDirPath, dbConnectionProperties, null, machines, false);
+                           List<Machine> machines, String queriesPath, boolean debug) {
+        this(unitSettingsDirPath, dbConnectionProperties, null, machines, queriesPath, debug);
     }
 
     public PersistenceImpl(String unitSettingsDirPath, DBConnectionProperties dbConnectionProperties,
-                           SSHConnectionProperties sshConnectionProperties, List<Machine> machines, boolean debug) {
+                           SSHConnectionProperties sshConnectionProperties, List<Machine> machines,
+                           String queriesPath, boolean debug) {
         unitFetcher = new UnitFetcher(unitSettingsDirPath);
-
-        // Database
         dbProxy = sshConnectionProperties != null ?
-                new DBProxy(unitFetcher, dbConnectionProperties, sshConnectionProperties, machines, debug) :
-                new DBProxy(unitFetcher, dbConnectionProperties, machines, debug);
+                new DBProxy(unitFetcher, dbConnectionProperties, sshConnectionProperties, machines, queriesPath, debug) :
+                new DBProxy(unitFetcher, dbConnectionProperties, machines, queriesPath, debug);
         sqlExceptionHandler = new SQLExceptionHandler(dbProxy);
     }
 

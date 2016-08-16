@@ -13,6 +13,7 @@ SERVICE_NAME=UbongoServer
 LOG_DIR="$DIR"/../logs
 CONF_PATH="$DIR"/../config/ubongo-config.xml
 UNITS_PATH="$DIR"/../units
+QUERIES_PATH="$DIR"/../db/queries.properties
 PATH_TO_JAR="$DIR"/../ubongo-server.jar
 PID_PATH_NAME="$DIR"/../ubongo-server-pid
 
@@ -24,7 +25,9 @@ case $1 in
             echo "Using LOG_DIR = $LOG_DIR"
             echo "Using CONF_PATH = $CONF_PATH"
             echo "Using UNITS_PATH = $UNITS_PATH"
-            nohup java -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH -Dunits_path=$UNITS_PATH -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
+            echo "Using QUERIES_PATH = $QUERIES_PATH"
+            nohup java -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH -Dunits_path=$UNITS_PATH -Dqueries=$QUERIES_PATH \
+            -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
                         echo $! > $PID_PATH_NAME
             echo "$SERVICE_NAME started ..."
         else

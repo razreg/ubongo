@@ -23,11 +23,12 @@ public class ServiceProviderImpl implements ServiceProvider {
     private Persistence persistence;
     private String unitsDirPath;
 
-    public ServiceProviderImpl(Configuration configuration, String unitSettingsDirPath, boolean debug) {
+    public ServiceProviderImpl(Configuration configuration, String unitSettingsDirPath,
+                               String queriesPath, boolean debug) {
         this.unitsDirPath = unitSettingsDirPath;
         persistence = new PersistenceImpl(unitSettingsDirPath,
                 configuration.getDbConnectionProperties(), configuration.getSshConnectionProperties(),
-                configuration.getMachines(), debug);
+                configuration.getMachines(), queriesPath, debug);
     }
 
     @Override
