@@ -12,10 +12,12 @@ import java.io.Serializable;
 public class Machine implements Serializable {
 
     @XmlAttribute private int id;
-    @XmlElement private String address;
+    @XmlElement private String host;
+    @XmlElement private String description;
     @XmlElement private MachineStatistics machineStatistics;
 
-    private boolean active = false; // after the first ping to the machine this should become true
+    private boolean connected = false;
+    private boolean active = false;
     private java.sql.Timestamp lastUpdated;
 
     public MachineStatistics getMachineStatistics() {
@@ -26,16 +28,16 @@ public class Machine implements Serializable {
         return id;
     }
 
-    public String getAddress() {
-        return address;
+    public String getHost() {
+        return host;
     }
 
     public void setId(int id) {
         this.id = id;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setHost(String host) {
+        this.host = host;
     }
 
     public void setStatistics(MachineStatistics machineStatistics) {
@@ -56,5 +58,21 @@ public class Machine implements Serializable {
 
     public void setLastUpdated(java.sql.Timestamp lastUpdated) {
         this.lastUpdated = lastUpdated;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public void setConnected(boolean connected) {
+        this.connected = connected;
     }
 }

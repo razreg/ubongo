@@ -42,7 +42,7 @@ public enum ExecutionProxy {
         logger.info("Sending request to the machine. Queue = [" + queue+ "] RequestTask = [ "+ request+ "] id = [" + task.getId() + "]");
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost(task.getMachine().getAddress());
+            factory.setHost(task.getMachine().getHost());
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
             channel.queueDeclare(queue, false, false, false, null);
@@ -54,7 +54,7 @@ public enum ExecutionProxy {
             channel.close();
             connection.close();
         } catch (Exception e){
-            logger.error("Failed sending task to machine. Task id = [" + task.getId() + "] Machine = [" + task.getMachine().getAddress() + "] error: " + e.getMessage());
+            logger.error("Failed sending task to machine. Task id = [" + task.getId() + "] Machine = [" + task.getMachine().getHost() + "] error: " + e.getMessage());
             task.setStatus(TaskStatus.FAILED);
             queueManager.updateTaskAfterExecution(task);
         }

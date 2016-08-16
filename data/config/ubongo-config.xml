@@ -21,7 +21,16 @@
 
     <machines>
         <machine id="1">
-            <address>rack-hezi-01</address>
+            <host>132.67.140.219</host>
+            <description>rack-hezi-01</description>
+        </machine>
+        <machine id="2">
+            <host>132.67.140.239</host>
+            <description>rack-hezi-02</description>
+        </machine>
+        <machine id="3">
+            <host>132.67.140.240</host>
+            <description>rack-hezi-03</description>
         </machine>
     </machines>
 

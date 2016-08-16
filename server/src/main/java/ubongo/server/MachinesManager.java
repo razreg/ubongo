@@ -57,7 +57,7 @@ public class MachinesManager {
         statisticsUpdateScheduler.scheduleAtFixedRate(() -> {
             for (Machine machine: machines) {
                 MachineStatistics machineStatistics = executionProxy.getStatistics(machine);
-                machine.setActive(machineStatistics != null);
+                machine.setConnected(machineStatistics != null);
                 machine.setStatistics(machineStatistics);
                 try {
                     persistence.updateMachine(machine);

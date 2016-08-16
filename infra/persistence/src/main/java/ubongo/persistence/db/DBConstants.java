@@ -55,8 +55,10 @@ public class DBConstants {
 
     public final static String MACHINES_TABLE_NAME = "machines";
     public final static String MACHINES_ID = "id";
-    public final static String MACHINES_ADDRESS = "address";
+    public final static String MACHINES_HOST = "host";
+    public final static String MACHINES_DESCRIPTION = "description";
     public final static String MACHINES_ACTIVE = "active";
+    public final static String MACHINES_CONNECTED = "connected";
     public final static String MACHINES_LAST_UPDATED = "last_updated";
 
 }

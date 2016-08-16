@@ -269,7 +269,7 @@ public class DBProxy {
             String sql = queriesProvider.getQuery(DBConstants.QUERY_UPDATE_MACHINES)
                     .replace("$machinesTable", machinesTableName);
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setBoolean(1, machine.isActive());
+            statement.setBoolean(1, machine.isConnected());
             statement.setInt(2, machine.getId());
             executeUpdate(statement);
         } catch (SQLException e) {
@@ -552,8 +552,10 @@ public class DBProxy {
     private Machine machineFromResultSet(ResultSet resultSet) throws SQLException {
         Machine machine = new Machine();
         machine.setId(resultSet.getInt(DBConstants.MACHINES_ID));
-        machine.setAddress(resultSet.getString(DBConstants.MACHINES_ADDRESS));
+        machine.setHost(resultSet.getString(DBConstants.MACHINES_HOST));
+        machine.setDescription(resultSet.getString(DBConstants.MACHINES_DESCRIPTION));
         machine.setActive(resultSet.getBoolean(DBConstants.MACHINES_ACTIVE));
+        machine.setConnected(resultSet.getBoolean(DBConstants.MACHINES_CONNECTED));
         machine.setLastUpdated(resultSet.getTimestamp(DBConstants.MACHINES_LAST_UPDATED));
         return machine;
     }
@@ -712,10 +714,12 @@ public class DBProxy {
     }
 
     private String getMachinesAsValueList(List<Machine> machines) {
-        // (id, address, active)
+        // (id, host, description, active, connected)
         return StringUtils.join(machines.stream()
                 .map(machine -> Utils.concatStrings("(", machine.getId()+"", ", '",
-                        machine.getAddress(), "',", (machine.isActive() ? "1" : "0"), ")"))
+                        machine.getHost(), "', '", machine.getDescription(),"', ",
+                        (machine.isActive() ? "1" : "0"), ", ",
+                        (machine.isConnected() ? "1" : "0"), ")"))
                 .collect(Collectors.toList()), ',');
     }
 

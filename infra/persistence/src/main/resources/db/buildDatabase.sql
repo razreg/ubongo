@@ -67,14 +67,16 @@ CREATE TABLE requests (
   ENGINE = InnoDB;
 
 # machines table
-CREATE TABLE zz_debug_machines (
+CREATE TABLE machines (
   id INT UNSIGNED NOT NULL,
-  address VARCHAR(45) NOT NULL,
+  host VARCHAR(45) NOT NULL,
+  description VARCHAR(45) NULL,
+  connected BIT(1) NULL DEFAULT 0,
   active BIT(1) NULL DEFAULT 0,
   last_updated TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE INDEX id_UNIQUE (id ASC),
-  UNIQUE INDEX address_UNIQUE (address ASC))
+  UNIQUE INDEX host_UNIQUE (host ASC))
   ENGINE = InnoDB;
 
 # triggers on tasks table
@@ -99,7 +101,7 @@ $$ DELIMITER ;
 
 # triggers on machines table
 DELIMITER $$
-CREATE TRIGGER zz_debug_before_update_machines BEFORE UPDATE ON zz_debug_machines
+CREATE TRIGGER before_update_machines BEFORE UPDATE ON machines
 FOR EACH ROW BEGIN SET
 NEW.last_updated = NOW();
 END
@@ -176,12 +178,14 @@ CREATE TABLE zz_debug_requests (
 # machines table
 CREATE TABLE zz_debug_machines (
   id INT UNSIGNED NOT NULL,
-  address VARCHAR(45) NOT NULL,
+  host VARCHAR(45) NOT NULL,
+  description VARCHAR(45) NULL,
+  connected BIT(1) NULL DEFAULT 0,
   active BIT(1) NULL DEFAULT 0,
   last_updated TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE INDEX id_UNIQUE (id ASC),
-  UNIQUE INDEX address_UNIQUE (address ASC))
+  UNIQUE INDEX host_UNIQUE (host ASC))
   ENGINE = InnoDB;
 
 # triggers on tasks table
