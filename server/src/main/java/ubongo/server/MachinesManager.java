@@ -3,33 +3,39 @@ package ubongo.server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ubongo.common.datatypes.Machine;
-import ubongo.common.datatypes.MachineStatistics;
 import ubongo.persistence.Persistence;
 import ubongo.persistence.PersistenceException;
 import ubongo.server.exceptions.MachinesManagementException;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class MachinesManager {
+
+    private static final int SECONDS_BETWEEN_HEARTBEAT_CYCLES = 60;
 
     private static Logger logger = LogManager.getLogger(MachinesManager.class);
     private final ScheduledExecutorService statisticsUpdateScheduler = Executors.newScheduledThreadPool(1);
     private List<Machine> machines;
-    private ExecutionProxy executionProxy;
     private Persistence persistence;
 
-    MachinesManager(List<Machine> machines, ExecutionProxy executionProxy, Persistence persistence) {
+    private int counter = 0;
+
+    MachinesManager(List<Machine> machines, Persistence persistence) {
         this.persistence = persistence;
-        this.executionProxy = executionProxy;
+        this.machines = machines;
+    }
+
+    public void setMachines(List<Machine> machines) {
         this.machines = machines;
     }
 
     public void start() throws PersistenceException {
         persistence.saveMachines(machines);
-        initPeriodicalStatisticsUpdate(2, TimeUnit.HOURS);
     }
 
     public void stop() {
@@ -37,34 +43,29 @@ public class MachinesManager {
     }
 
     public Machine getAvailableMachine() throws MachinesManagementException {
-        Machine mostAvailableMachine = null;
-        float availability = 0;
-        for (Machine machine: machines) {
-            double currentAvailability = machine.getMachineStatistics().getAvailabilityScore();
-            if (currentAvailability > availability) {
-                mostAvailableMachine = machine;
-            }
+        final Timestamp oldTime =
+                new Timestamp(new Date().getTime() - 1000 * SECONDS_BETWEEN_HEARTBEAT_CYCLES * 2);
+        List<Machine> machinesPool = machines.stream()
+                .filter(m -> m.isActive() && m.isConnected() &&
+                        m.getLastHeartbeat() != null && m.getLastHeartbeat().after(oldTime))
+                .collect(Collectors.toList());
+        if (machinesPool.isEmpty()) {
+            throw new MachinesManagementException("No available machines");
         }
-        if (mostAvailableMachine == null) {
-            // should never happen! machines list should never be null or empty.
-            throw new MachinesManagementException(
-                    "No machines found. Please make sure machines are configured in the server.");
-        }
-        return mostAvailableMachine;
+        counter = (counter + 1) % Integer.MAX_VALUE;
+        return machinesPool.get(counter % machinesPool.size());
     }
 
-    private void initPeriodicalStatisticsUpdate(int interval, TimeUnit intervalUnits) {
-        statisticsUpdateScheduler.scheduleAtFixedRate(() -> {
-            for (Machine machine: machines) {
-                MachineStatistics machineStatistics = executionProxy.getStatistics(machine);
-                machine.setConnected(machineStatistics != null);
-                machine.setStatistics(machineStatistics);
-                try {
-                    persistence.updateMachine(machine);
-                } catch (PersistenceException e) {
-                    logger.error("Failed to update machine in DB.", e);
-                }
-            }
-        }, 0, interval, intervalUnits);
+    private void heartbeatListener() {
+        // TODO Shelly's implementation. At some point we have a machine and from that point:
+        Machine machine = new Machine(); // not really new - the same machine that corresponds to the heartbeat sender
+        machine.setConnected(true); // received heartbeat
+        machine.setLastHeartbeat(new Timestamp(new Date().getTime()));
+        try {
+            persistence.updateMachine(machine); // updates the heartbeat in the DB
+        } catch (PersistenceException e) {
+            logger.error("Failed to store heartbeat in DB for "
+                    + machine.getHost() + " (ID = " + machine.getId() + ")", e);
+        }
     }
 }

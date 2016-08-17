@@ -299,6 +299,22 @@ public class DBProxy {
         }
     }
 
+    public void changeMachineActivityStatus(int machineId, boolean activate) throws DBProxyException {
+        connect();
+        String machinesTableName = getTableName(DBConstants.MACHINES_TABLE_NAME);
+        try {
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_CHANGE_MACHINE_ACTIVITY)
+                    .replace("$machinesTable", machinesTableName);
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setBoolean(1, activate);
+            statement.setInt(2, machineId);
+            executeUpdate(statement);
+        } catch (SQLException e) {
+            String errorMsg = "Failed to " + (activate ? "" : "de") + "activate machine with ID = " + machineId;
+            throw new DBProxyException(errorMsg, e);
+        }
+    }
+
     public List<ExecutionRequest> getNewRequests() throws DBProxyException {
         connect();
         List<ExecutionRequest> requests = new ArrayList<>();
@@ -556,7 +572,7 @@ public class DBProxy {
         machine.setDescription(resultSet.getString(DBConstants.MACHINES_DESCRIPTION));
         machine.setActive(resultSet.getBoolean(DBConstants.MACHINES_ACTIVE));
         machine.setConnected(resultSet.getBoolean(DBConstants.MACHINES_CONNECTED));
-        machine.setLastUpdated(resultSet.getTimestamp(DBConstants.MACHINES_LAST_UPDATED));
+        machine.setLastHeartbeat(resultSet.getTimestamp(DBConstants.MACHINES_LAST_HEARTBEAT));
         return machine;
     }
 

@@ -74,6 +74,7 @@ CREATE TABLE machines (
   connected BIT(1) NULL DEFAULT 0,
   active BIT(1) NULL DEFAULT 0,
   last_updated TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  last_heartbeat TIMESTAMP NULL,
   PRIMARY KEY (id),
   UNIQUE INDEX id_UNIQUE (id ASC),
   UNIQUE INDEX host_UNIQUE (host ASC))
@@ -103,7 +104,9 @@ $$ DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER before_update_machines BEFORE UPDATE ON machines
 FOR EACH ROW BEGIN SET
-NEW.last_updated = NOW();
+NEW.last_updated = NOW(),
+NEW.last_heartbeat = (CASE WHEN NEW.connected = 1
+  THEN NOW() ELSE OLD.last_heartbeat END);
 END
 $$ DELIMITER ;
 
@@ -183,6 +186,7 @@ CREATE TABLE zz_debug_machines (
   connected BIT(1) NULL DEFAULT 0,
   active BIT(1) NULL DEFAULT 0,
   last_updated TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  last_heartbeat TIMESTAMP NULL,
   PRIMARY KEY (id),
   UNIQUE INDEX id_UNIQUE (id ASC),
   UNIQUE INDEX host_UNIQUE (host ASC))
@@ -212,6 +216,8 @@ $$ DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER zz_debug_before_update_machines BEFORE UPDATE ON zz_debug_machines
 FOR EACH ROW BEGIN SET
-NEW.last_updated = NOW();
+NEW.last_updated = NOW(),
+NEW.last_heartbeat = (CASE WHEN NEW.connected = 1
+  THEN NOW() ELSE OLD.last_heartbeat END);
 END
 $$ DELIMITER ;

@@ -130,6 +130,13 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     @Override
+    public void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException {
+        ExecutionRequest request = new ExecutionRequest(machineId,
+                activate ? ExecutionRequest.Action.ACTIVATE_MACHINE : ExecutionRequest.Action.DEACTIVATE_MACHINE);
+        persistence.saveRequest(request);
+    }
+
+    @Override
     public void generateBashFileForNewUnit(int unitId) throws PersistenceException {
         List<Unit> allUnits = getAllUnits();
         if (allUnits.size() < unitId) {

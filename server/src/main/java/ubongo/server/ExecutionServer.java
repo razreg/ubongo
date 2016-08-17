@@ -106,7 +106,7 @@ public class ExecutionServer {
     private ExecutionServer(Persistence persistence, List<Machine> machines) {
         this.persistence = persistence;
         executionProxy = ExecutionProxy.getInstance();
-        machinesManager = new MachinesManager(machines, executionProxy, persistence);
+        machinesManager = new MachinesManager(machines, persistence);
         queueManager = new QueueManager(persistence, machinesManager);
         try {
             tasksStatusListener();
@@ -192,6 +192,12 @@ public class ExecutionServer {
                 case CANCEL_FLOW:
                     cancelFlow(entityId);
                     break;
+                case ACTIVATE_MACHINE:
+                    changeMachineActivityStatus(entityId, true);
+                    break;
+                case DEACTIVATE_MACHINE:
+                    changeMachineActivityStatus(entityId, false);
+                    break;
             }
         } catch (Exception e) {
             logger.error("Server failed to handle request (id="
@@ -209,6 +215,11 @@ public class ExecutionServer {
                         + request.getStatus(), e);
             }
         }
+    }
+
+    private static void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException {
+        INSTANCE.persistence.changeMachineActivityStatus(machineId, activate);
+        INSTANCE.machinesManager.setMachines(INSTANCE.persistence.getAllMachines());
     }
 
     private static void killTask(Task task) {

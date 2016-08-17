@@ -14,15 +14,10 @@ public class Machine implements Serializable {
     @XmlAttribute private int id;
     @XmlElement private String host;
     @XmlElement private String description;
-    @XmlElement private MachineStatistics machineStatistics;
 
     private boolean connected = false;
     private boolean active = false;
-    private java.sql.Timestamp lastUpdated;
-
-    public MachineStatistics getMachineStatistics() {
-        return machineStatistics;
-    }
+    private java.sql.Timestamp lastHeartbeat;
 
     public int getId() {
         return id;
@@ -40,10 +35,6 @@ public class Machine implements Serializable {
         this.host = host;
     }
 
-    public void setStatistics(MachineStatistics machineStatistics) {
-        this.machineStatistics = machineStatistics;
-    }
-
     public boolean isActive() {
         return active;
     }
@@ -52,12 +43,12 @@ public class Machine implements Serializable {
         this.active = active;
     }
 
-    public java.sql.Timestamp getLastUpdated() {
-        return lastUpdated;
+    public java.sql.Timestamp getLastHeartbeat() {
+        return lastHeartbeat;
     }
 
-    public void setLastUpdated(java.sql.Timestamp lastUpdated) {
-        this.lastUpdated = lastUpdated;
+    public void setLastHeartbeat(java.sql.Timestamp lastHeartbeat) {
+        this.lastHeartbeat = lastHeartbeat;
     }
 
     public String getDescription() {

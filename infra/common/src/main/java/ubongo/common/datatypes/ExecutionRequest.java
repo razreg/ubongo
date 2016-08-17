@@ -56,7 +56,9 @@ public class ExecutionRequest implements Serializable {
         KILL_TASK ("Kill_Task"),
         RESUME_TASK ("Resume_Task"),
         RUN_FLOW ("Run_Flow"),
-        CANCEL_FLOW ("Cancel_Flow");
+        CANCEL_FLOW ("Cancel_Flow"),
+        ACTIVATE_MACHINE ("Activate_Machine"),
+        DEACTIVATE_MACHINE ("Deactivate_Machine");
 
         private String name;
 

@@ -104,7 +104,7 @@ public final class RestService {
     }
 
     @GET
-    @Path("/version")
+    @Path("version")
     @Produces(MediaType.APPLICATION_JSON)
     public String getVersion() {
         return "{\"version\": \"" + APP_VERSION + "\"}";
@@ -129,6 +129,35 @@ public final class RestService {
             throw new UbongoHttpException(500, "Failed to retrieve machines from DB.");
         }
         return response;
+    }
+
+    @POST
+    @Path("machines/{machineId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void changeMachineActivityStatus(
+            @PathParam("machineId") int machineId,
+            @DefaultValue("false") @QueryParam("activate") boolean activate,
+            @DefaultValue("false") @QueryParam("deactivate") boolean deactivate) throws UbongoHttpException {
+        if (activate) {
+            if (deactivate) {
+                throw new UbongoHttpException(400, "Received a POST request to machines/"
+                        + machineId + " with both activate and deactivate query params turned on. Please choose only one.");
+            }
+            try {
+                serviceProvider.changeMachineActivityStatus(machineId, true);
+            } catch (PersistenceException e) {
+                throw new UbongoHttpException(500, "Failed to send activation request for machine with ID=" + machineId);
+            }
+        } else if (deactivate) {
+            try {
+                serviceProvider.changeMachineActivityStatus(machineId, false);
+            } catch (PersistenceException e) {
+                throw new UbongoHttpException(500, "Failed to send deactivation request for machine with ID=" + machineId);
+            }
+        } else {
+            throw new UbongoHttpException(400, "Received a POST request to machines/"
+                    + machineId + " without any query param. Please send query param 'activate' or 'deactivate'.");
+        }
     }
 
     @GET

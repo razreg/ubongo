@@ -24,6 +24,7 @@ public class DBConstants {
     public final static String QUERY_SAVE_MACHINES = "save_machines";
     public final static String QUERY_GET_MACHINES = "get_machines";
     public final static String QUERY_UPDATE_MACHINES = "update_machine";
+    public final static String QUERY_CHANGE_MACHINE_ACTIVITY = "change_machine_activity";
 
     public final static String TASKS_TABLE_NAME = "tasks";
     public final static String TASKS_TASK_ID = "task_id";
@@ -59,6 +60,6 @@ public class DBConstants {
     public final static String MACHINES_DESCRIPTION = "description";
     public final static String MACHINES_ACTIVE = "active";
     public final static String MACHINES_CONNECTED = "connected";
-    public final static String MACHINES_LAST_UPDATED = "last_updated";
+    public final static String MACHINES_LAST_HEARTBEAT = "last_heartbeat";
 
 }

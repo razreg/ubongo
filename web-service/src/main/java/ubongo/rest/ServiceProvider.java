@@ -72,6 +72,8 @@ public interface ServiceProvider {
      */
     List<Unit> getAllUnits() throws PersistenceException;
 
+    void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException;
+
     void generateBashFileForNewUnit(int unitId) throws PersistenceException; // TODO use in UI
 
     void start();

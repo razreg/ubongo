@@ -223,4 +223,12 @@ public interface Persistence {
      * @throws PersistenceException if the update to the DB has failed.
      */
     void updateMachine(Machine machine) throws PersistenceException;
+
+    /**
+     * Changes the machine to active if activate == true and otherwise to inactive.
+     * @param machineId to activate/deactivate
+     * @param activate flag - true iff this machine needs to be active.
+     * @throws PersistenceException if the update to the DB has failed.
+     */
+    void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException;
 }

@@ -8,7 +8,7 @@
         <table width="100%">
             <tr>
                 <td width="180"><label class="control-label">Last heartbeat received:</label></td>
-                <td><div ng-bind="currMachine.lastUpdated" style="margin-bottom:5px;"></div></td>
+                <td><div ng-bind="currMachine.lastHeartbeat" style="margin-bottom:5px;"></div></td>
             </tr><tr>
             <td colspan="2" align="center" ng-style="err.style" ng-if="err.display" ng-bind="err.msg"></td>
         </tr>

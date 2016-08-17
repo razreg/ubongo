@@ -15,8 +15,8 @@ function MachinesController($scope, $http, $interval) {
       .success(function(data, status, headers, config) {
         for (var i = 0; i < data.length; ++i) {
           var date = new Date(0);
-          date.setUTCSeconds(data[i].lastUpdated / 1000);
-          data[i].lastUpdated = dateInNiceFormat(date);
+          date.setUTCSeconds(data[i].lastHeartbeat / 1000);
+          data[i].lastHeartbeat = dateInNiceFormat(date);
         }
         $scope.machines = data;
         $scope.machineGridOptions.data = $scope.machines;
@@ -57,7 +57,7 @@ function MachinesController($scope, $http, $interval) {
       {name: 'description'},
       {name: 'connected', cellTemplate: template},
       {name: 'active', cellTemplate: template},
-      {name: 'lastUpdated', displayName: "Last Heartbeat", visible: false}
+      {name: 'lastHeartbeat', displayName: "Last Heartbeat", visible: false}
     ]
   };
   $scope.machineGridOptions.onRegisterApi = function(gridApi) {
