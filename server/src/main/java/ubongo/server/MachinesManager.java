@@ -43,6 +43,13 @@ public class MachinesManager {
     }
 
     public Machine getAvailableMachine() throws MachinesManagementException {
+        // TODO remove the loop - this is a placeholder so that the server will send tasks to a machine
+        for (Machine machine : machines) {
+            if (machine.getId() == 1) {
+                return machine;
+            }
+        }
+
         final Timestamp oldTime =
                 new Timestamp(new Date().getTime() - 1000 * SECONDS_BETWEEN_HEARTBEAT_CYCLES * 2);
         List<Machine> machinesPool = machines.stream()

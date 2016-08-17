@@ -42,7 +42,7 @@ public enum ExecutionProxy {
         logger.info("Sending request to the machine. Queue = [" + queue+ "] RequestTask = [ "+ request+ "] id = [" + task.getId() + "]");
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost(task.getMachine().getHost());
+            factory.setHost(task.getMachine().getDescription()); // TODO note that the description is the name of the machine and host is the ip
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
             channel.queueDeclare(queue, false, false, false, null);

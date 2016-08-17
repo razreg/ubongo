@@ -139,7 +139,7 @@ function TasksController($scope, $http, uiGridConstants) {
   $scope.cancelTask = function() {
     $http.post(getApiTaskActionPath('cancel'))
       .success(function(data, status, headers, config) {
-        displayMsg(true, 'Task canceled successfully', GOOD_STYLE);
+        displayMsg(true, 'A request to cancel task was sent to the server', GOOD_STYLE);
       })
       .error(function(data, status, headers, config) {
         displayMsg(true, 'Failed to cancel task', BAD_STYLE);
@@ -149,7 +149,7 @@ function TasksController($scope, $http, uiGridConstants) {
   $scope.resumeTask = function() {
     $http.post(getApiTaskActionPath('resume'))
       .success(function(data, status, headers, config) {
-        displayMsg(true, 'Task resumed successfully', GOOD_STYLE);
+        displayMsg(true, 'A request to resume task was sent to the server', GOOD_STYLE);
       })
       .error(function(data, status, headers, config) {
         displayMsg(true, 'Failed to resume task', BAD_STYLE);

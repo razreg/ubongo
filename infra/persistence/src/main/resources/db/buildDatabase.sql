@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS machines;
 # units table
 CREATE TABLE units (
   analysis_unit_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  analysis_name VARCHAR(50) NOT NULL,
+  analysis_name VARCHAR(100) NOT NULL,
   serial INT UNSIGNED NOT NULL,
   external_unit_id INT UNSIGNED NOT NULL, # unitId from XML configuration file
   insertion_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -22,7 +22,7 @@ CREATE TABLE units (
 # flows table
 CREATE TABLE flows (
   flow_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  study_name VARCHAR(50) NOT NULL,
+  study_name VARCHAR(100) NOT NULL,
   insertion_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   status VARCHAR(20) NOT NULL DEFAULT 'New',
   PRIMARY KEY (flow_id),
@@ -37,8 +37,8 @@ CREATE TABLE tasks (
   serial_in_flow INT UNSIGNED NOT NULL,
   unit_id INT UNSIGNED NOT NULL,
   unit_params BLOB NULL,
-  subject VARCHAR(50) NULL,
-  run VARCHAR(50) NULL,
+  subject VARCHAR(100) NULL,
+  run VARCHAR(100) NULL,
   machine_id INT UNSIGNED NULL,
   insertion_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   execution_time TIMESTAMP NULL,
@@ -69,8 +69,8 @@ CREATE TABLE requests (
 # machines table
 CREATE TABLE machines (
   id INT UNSIGNED NOT NULL,
-  host VARCHAR(45) NOT NULL,
-  description VARCHAR(45) NULL,
+  host VARCHAR(100) NOT NULL,
+  description VARCHAR(100) NULL,
   connected BIT(1) NULL DEFAULT 0,
   active BIT(1) NULL DEFAULT 0,
   last_updated TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
@@ -122,7 +122,7 @@ DROP TABLE IF EXISTS zz_debug_machines;
 # units table
 CREATE TABLE zz_debug_units (
   analysis_unit_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  analysis_name VARCHAR(50) NOT NULL,
+  analysis_name VARCHAR(100) NOT NULL,
   serial INT UNSIGNED NOT NULL,
   external_unit_id INT UNSIGNED NOT NULL, # unitId from XML configuration file
   insertion_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -134,7 +134,7 @@ CREATE TABLE zz_debug_units (
 # flows table
 CREATE TABLE zz_debug_flows (
   flow_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  study_name VARCHAR(50) NOT NULL,
+  study_name VARCHAR(100) NOT NULL,
   insertion_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   status VARCHAR(20) NOT NULL DEFAULT 'New',
   PRIMARY KEY (flow_id),
@@ -149,8 +149,8 @@ CREATE TABLE zz_debug_tasks (
   serial_in_flow INT UNSIGNED NOT NULL,
   unit_id INT UNSIGNED NOT NULL,
   unit_params BLOB NULL,
-  subject VARCHAR(50) NULL,
-  run VARCHAR(50) NULL,
+  subject VARCHAR(100) NULL,
+  run VARCHAR(100) NULL,
   machine_id INT UNSIGNED NULL,
   insertion_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   execution_time TIMESTAMP NULL,
@@ -181,8 +181,8 @@ CREATE TABLE zz_debug_requests (
 # machines table
 CREATE TABLE zz_debug_machines (
   id INT UNSIGNED NOT NULL,
-  host VARCHAR(45) NOT NULL,
-  description VARCHAR(45) NULL,
+  host VARCHAR(100) NOT NULL,
+  description VARCHAR(100) NULL,
   connected BIT(1) NULL DEFAULT 0,
   active BIT(1) NULL DEFAULT 0,
   last_updated TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
