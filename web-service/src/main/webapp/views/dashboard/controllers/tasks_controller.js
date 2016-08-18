@@ -10,7 +10,9 @@ function TasksController($scope, $http, uiGridConstants) {
     msg: '',
     style: {color: 'black'}
   };
-  $scope.currFlow = {status: 'New'};
+  $scope.selectedOption = '0';
+  $scope.currFlow = {status: 'NEW'};
+
   $scope.currTask = {
     actions: {
       act_cancel: false,
@@ -18,18 +20,7 @@ function TasksController($scope, $http, uiGridConstants) {
       act_resume: false
     }
   };
-  $http.get('rest/api/flows')
-    .success(function(data, status, headers, config) {
-      $scope.flows = data;
-      if ($scope.flows.length > 0) {
-        $scope.defaultFlowText.value = 'Select flow';
-      } else {
-        $scope.defaultFlowText.value = 'No flows available';
-      }
-    })
-    .error(function(data, status, headers, config) {
-      $scope.defaultFlowText.value = 'Failed to load flows';
-    });
+  reloadFlows();
 
   // tasks grid
   $scope.taskGridOptions = {
@@ -90,15 +81,45 @@ function TasksController($scope, $http, uiGridConstants) {
     $scope.err.style = style;
   }
 
+  function reloadFlows() {
+    return $http.get('rest/api/flows')
+      .success(function(data, status, headers, config) {
+        $scope.flows = data;
+        if ($scope.flows.length > 0) {
+          $scope.defaultFlowText.value = 'Select flow';
+        } else {
+          $scope.defaultFlowText.value = 'No flows available';
+        }
+        return true;
+      })
+      .error(function(data, status, headers, config) {
+        $scope.defaultFlowText.value = 'Failed to load flows';
+        return false;
+      });
+  }
+
+  $scope.refreshFlows = function() {
+    $scope.taskGridOptions.data = [];
+    $scope.taskDetailsGridOptions.data = [];
+    $scope.taskSelected = [];
+    var success = reloadFlows();
+    if (success) {
+      $scope.loadFlow();
+    }
+  };
+
   $scope.loadFlow = function() {
     displayMsg(false);
-    $http.get('rest/api/flows/' + $scope.selectFlow.flowId + '/tasks')
+    $scope.taskSelected = [];
+    $http.get('rest/api/flows/' + $scope.selectedOption + '/tasks')
       .success(function(data, status, headers, config) {
         if (data.length > 0) {
           $scope.currFlow = {
             tasks: data,
             context: data[0].context,
-            status: $scope.selectFlow.status
+            status: $scope.flows.filter(function(flow) {
+              return flow.flowId+'' == $scope.selectedOption;
+            })[0].status
           };
           $scope.taskGridOptions.data = data.map(function(task) {
             return {
@@ -118,6 +139,16 @@ function TasksController($scope, $http, uiGridConstants) {
         $scope.currFlow = {status: 'New'};
         displayMsg(true, 'Failed to load flow details', BAD_STYLE);
         $scope.taskGridOptions.data = [];
+      });
+  };
+
+  $scope.cancelFlow = function() {
+    $http.post('rest/api/flows/' + $scope.selectedOption + '?action=cancel')
+      .success(function(data, status, headers, config) {
+        displayMsg(true, 'A request to cancel flow was sent to the server', GOOD_STYLE);
+      })
+      .error(function(data, status, headers, config) {
+        displayMsg(true, 'Failed to cancel flow', BAD_STYLE);
       });
   };
 
@@ -167,6 +198,6 @@ function TasksController($scope, $http, uiGridConstants) {
   };
 
   function getApiTaskActionPath(action) {
-    return 'rest/api/flows/' + $scope.selectFlow.flowId + '/tasks/' + $scope.currTask.id + '?action=' + action;
+    return 'rest/api/flows/' + $scope.selectedOption + '/tasks/' + $scope.currTask.id + '?action=' + action;
   }
 }

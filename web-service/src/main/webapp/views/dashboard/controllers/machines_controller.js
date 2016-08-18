@@ -1,5 +1,8 @@
 function MachinesController($scope, $http, $interval) {
 
+  var GOOD_STYLE = {paddingTop: '4px', color: 'green'};
+  var BAD_STYLE = {paddingTop: '4px', color: 'red'};
+
   fetchMachines();
   $interval(fetchMachines, 1000 * 60); // refresh machines every minute
   $scope.machines = [];
@@ -9,21 +12,35 @@ function MachinesController($scope, $http, $interval) {
     style: {color: 'black'}
   };
   $scope.currMachine = {id: -1};
+  $scope.server = {
+    lastHeartbeat: '-'
+  };
 
   function fetchMachines() {
     $http.get('rest/api/machines')
       .success(function(data, status, headers, config) {
         for (var i = 0; i < data.length; ++i) {
-          var date = new Date(0);
-          date.setUTCSeconds(data[i].lastHeartbeat / 1000);
-          data[i].lastHeartbeat = dateInNiceFormat(date);
+          if (data[i].lastHeartbeat <= 0) {
+            data[i].lastHeartbeat = '-';
+            data[i].connected = false;
+          } else {
+            var date = new Date(0);
+            var utcSeconds = data[i].lastHeartbeat / 1000;
+            date.setUTCSeconds(utcSeconds);
+            data[i].lastHeartbeat = dateInNiceFormat(date);
+            data[i].connected = !isDateTooOld(utcSeconds);
+          }
         }
         $scope.machines = data;
         $scope.machineGridOptions.data = $scope.machines;
       })
       .error(function(data, status, headers, config) {
-        // TODO reflect in UI (error message)
+        displayMsg(true, 'Failed to load machines', BAD_STYLE);
       });
+  }
+
+  function isDateTooOld(utcSeconds) {
+    return new Date().getUTCSeconds() - utcSeconds > 60 * 3; // 3 minutes interval to detect disconnected machine
   }
 
   function dateInNiceFormat(date) {
@@ -72,5 +89,11 @@ function MachinesController($scope, $http, $interval) {
       }
     });
   };
+
+  function displayMsg(disp, msg, style) {
+    $scope.err.display = disp;
+    $scope.err.msg = msg;
+    $scope.err.style = style;
+  }
 
 }

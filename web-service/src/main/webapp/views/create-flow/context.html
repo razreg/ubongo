@@ -28,13 +28,13 @@
     </div>
     <div class="form-group" ng-if="flow.source == 'new'">
         <label class="control-label" for="analysisNameInput">Analysis Name</label>
-        <input type="text" class="form-control" id="analysisNameInput"
+        <input type="text" class="form-control" id="analysisNameInput" maxlength="100"
                placeholder="Insert name to save template for future flows">
     </div>
     <div class="form-group">
         <label class="control-label" for="studyInput">Study</label> <label style="color:red;">*</label>
         <input type="text" class="form-control" id="studyInput" ng-model="studyInput" name="studyInput"
-               placeholder="Insert name of study, matching study directory" required>
+               placeholder="Insert name of study, matching study directory" required maxlength="100">
     </div>
     <div class="form-group">
         <table width="100%">
@@ -56,7 +56,7 @@
             <tr>
                 <td colspan="3"><input type="text" class="form-control" id="subjectInput" name="subjectInput"
                            ng-model="subjectInput" ng-disabled="flow.allSubjects == 'all'" ng-required="flow.allSubjects == 'custom'"
-                           placeholder="Insert name of subject, matching subject directory"></td>
+                           placeholder="Insert name of subject, matching subject directory" maxlength="100"></td>
             </tr>
         </table>
     </div>
@@ -80,7 +80,7 @@
             <tr>
                 <td colspan="3"><input type="text" class="form-control" id="runInput" name="runInput"
                                        ng-model="runInput" ng-disabled="flow.allRuns == 'all'" ng-required="flow.allRuns == 'custom'"
-                                       placeholder="Insert name of run, matching run directory, or write anatomy"></td>
+                                       placeholder="Insert name of run, matching run directory, or write anatomy" maxlength="100"></td>
             </tr>
         </table>
     </div>
@@ -93,11 +93,11 @@
                            ng-if="flowMainForm.$pristine && flowMainForm.$valid"></label>
                 </div></td>
                 <td align="right" style="padding-right:5px;">
-                    <button type="button" class="btn btn-default">Save Analysis&nbsp;</button></td>
+                    <button type="button" class="btn btn-default">Save Analysis</button></td>
                 <td align="right"><button type="button" class="btn btn-default"
                             ng-click="runFlow()"
                             ng-disabled="flowMainForm.$pristine || flowMainForm.$invalid ||
-                            unitsScope.unitGridOptions.data.length === 0">Run Flow&nbsp;</button></td>
+                            unitsScope.unitGridOptions.data.length === 0">Run Flow</button></td>
             </tr>
         </table>
     </div>

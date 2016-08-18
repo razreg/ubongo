@@ -4,14 +4,18 @@
     <div id="machinesGrid" ui-grid="machineGridOptions" class="gridStyle unitGridStyle"
          ui-grid-selection ui-grid-move-columns ui-grid-resize-columns></div>
     <p></p>
-    <div ng-if="currMachine.id >= 0">
+    <div>
         <table width="100%">
             <tr>
-                <td width="180"><label class="control-label">Last heartbeat received:</label></td>
+                <td width="180"><label class="control-label">Server's last heartbeat:</label></td>
+                <td><div ng-bind="server.lastHeartbeat" style="margin-bottom:5px;"></div></td>
+            </tr>
+            <tr ng-if="currMachine.id >= 0">
+                <td><label class="control-label">Machine's last heartbeat:</label></td>
                 <td><div ng-bind="currMachine.lastHeartbeat" style="margin-bottom:5px;"></div></td>
             </tr><tr>
-            <td colspan="2" align="center" ng-style="err.style" ng-if="err.display" ng-bind="err.msg"></td>
-        </tr>
+                <td colspan="2" align="center" ng-style="err.style" ng-if="err.display" ng-bind="err.msg"></td>
+            </tr>
         </table>
     </div>
 </div>

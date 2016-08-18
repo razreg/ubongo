@@ -5,27 +5,38 @@
         <table width="100%">
             <tr>
                 <td width="20%"><label class="control-label" for="selectFlow">Select Flow:</label></td>
-                <td><select class="form-control" id="selectFlow" ng-model="selectFlow"
-                            ng-options="flow.flowId + ' - ' + flow.studyName for flow in flows"
-                            ng-change="loadFlow()">
-                    <option disabled selected ng-bind="defaultFlowText.value"></option>
-                </select></td>
+                <td>
+                    <select class="form-control" id="selectFlow" ng-change="loadFlow()" ng-model="selectedOption">
+                        <option disabled selected ng-bind="defaultFlowText.value" value="0"></option>
+                        <option ng-repeat="flow in flows" value="{{flow.flowId}}"
+                                ng-selected="flow.flowId+''==selectedOption"
+                                ng-bind="flow.flowId + ' - ' + flow.studyName"></option>
+                    </select>
+                </td>
             </tr>
         </table>
     </div>
 
     <p></p>
     <div>
-        <table width="100%">
+        <table width="100%" style="table-layout:fixed;">
             <tr>
-                <td width="30%"><label class="control-label">Study:&nbsp;</label></td>
+                <td width="26%" style="word-wrap:break-word;"><label class="control-label">Study: </label></td>
                 <td><div ng-bind="currFlow.context.study"></div></td>
+                <td rowspan="3" align="right" width="80"><form name="flowActions">
+                    <button type="button" class="btn btn-default"
+                            ng-click="refreshFlows()" style="width:100%;margin-bottom:4px;">Refresh</button>
+                    <br/>
+                    <button type="button" class="btn btn-default btn-task-action"
+                            ng-click="cancelFlow()" style="width:100%;"
+                            ng-disabled="selectedOption=='0' || currFlow.status == 'COMPLETED'">Cancel</button>
+                    </form></td>
             </tr><tr>
-                <td><label class="control-label">Subject:&nbsp;</label></td>
-                <td><div ng-bind="currFlow.context.subject"></div></td>
+                <td><label class="control-label">Subject: </label></td>
+                <td style="word-wrap:break-word;"><div ng-bind="currFlow.context.subject"></div></td>
             </tr><tr>
-                <td><label class="control-label">Run/Anatomy:&nbsp;</label></td>
-                <td><div ng-bind="currFlow.context.run"></div></td>
+                <td><label class="control-label">Run/Anatomy: </label></td>
+                <td style="word-wrap:break-word;"><div ng-bind="currFlow.context.run"></div></td>
             </tr><tr>
                 <td colspan="2" align="center" ng-style="err.style" ng-if="err.display" ng-bind="err.msg"></td>
             </tr>
@@ -45,9 +56,9 @@
                 <td width="75%"><div id="taskDetailsGrid" ui-grid="taskDetailsGridOptions" class="gridStyle unitGridStyle"
                          ui-grid-move-columns ui-grid-resize-columns></div></td>
                 <td align="center" valign="top">
-                    <button type="button" class="btn btn-default btn-task-action" ng-click="cancelTask()" ng-disabled="!currTask.actions.act_cancel">Cancel&nbsp;</button>
-                    <button type="button" class="btn btn-default btn-task-action" ng-click="killTask()" ng-disabled="!currTask.actions.act_kill">Stop&nbsp;</button>
-                    <button type="button" class="btn btn-default btn-task-action" ng-click="resumeTask()" ng-disabled="!currTask.actions.act_resume">Resume&nbsp;</button>
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="cancelTask()" ng-disabled="!currTask.actions.act_cancel">Cancel</button>
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="killTask()" ng-disabled="!currTask.actions.act_kill">Stop</button>
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="resumeTask()" ng-disabled="!currTask.actions.act_resume">Resume</button>
                 </td>
             </tr>
         </table>
