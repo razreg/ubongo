@@ -1,4 +1,4 @@
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation" ng-controller="HeaderController">
     <div class="container-fluid">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
@@ -10,10 +10,11 @@
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
+                <li><a href="#/management">
+                    <span class="badge" ng-if="notifications.requests > 0" ng-bind="notifications.requests"></span> Management
+                </a></li>
                 <li><a href="#/dashboard">Dashboard</a></li>
                 <li><a href="#/flows">Create flow</a></li>
-                <li></li>
-                <li><a href="/">Help</a></li>
             </ul>
             <form class="navbar-form navbar-right"></form>
             <img class="logo-image" src="images/Ubongo.gif" height="69" width="116"/>

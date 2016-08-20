@@ -1,7 +1,7 @@
 <div class="jumbotron jumbotron-additions" ng-controller="TasksController">
     <h1>Tasks</h1>
     <p></p>
-    <div class="form-group">
+    <div class="form-group" ng-cloak>
         <table width="100%">
             <tr>
                 <td width="20%"><label class="control-label" for="selectFlow">Select Flow:</label></td>
@@ -21,7 +21,7 @@
     <div>
         <table width="100%" style="table-layout:fixed;">
             <tr>
-                <td width="26%" style="word-wrap:break-word;"><label class="control-label">Study: </label></td>
+                <td width="26%"><label class="control-label">Study: </label></td>
                 <td><div ng-bind="currFlow.context.study"></div></td>
                 <td rowspan="3" align="right" width="80"><form name="flowActions">
                     <button type="button" class="btn btn-default"

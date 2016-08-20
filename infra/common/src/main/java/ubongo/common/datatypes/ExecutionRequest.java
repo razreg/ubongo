@@ -8,8 +8,10 @@ public class ExecutionRequest implements Serializable {
     private int entityId;
     private Action action;
     private Status status;
+    private java.sql.Timestamp creationTime;
+    private java.sql.Timestamp lastUpdated;
 
-    public ExecutionRequest() {} // for seriallizers
+    public ExecutionRequest() {}
 
     public ExecutionRequest(int entityId, Action action) {
         this.id = 0;
@@ -48,6 +50,22 @@ public class ExecutionRequest implements Serializable {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public java.sql.Timestamp getCreationTime() {
+        return creationTime;
+    }
+
+    public void setCreationTime(java.sql.Timestamp creationTime) {
+        this.creationTime = creationTime;
+    }
+
+    public java.sql.Timestamp getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(java.sql.Timestamp lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
     public enum Action implements Serializable {

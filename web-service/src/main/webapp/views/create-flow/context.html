@@ -18,17 +18,16 @@
         </tr>
     </table>
     <p></p>
-    <div class="form-group" ng-if="flow.source == 'analysis'">
+    <div class="form-group" ng-if="flow.source == 'analysis'" ng-cloak>
         <label class="control-label" for="analysisSelection">Saved Analysis</label>
-        <select class="form-control" id="analysisSelection" ng-model="selectedAnalysis"
-                ng-options="analysisName for analysisName in flow.analysisNames">
-            <option disabled selected
-                    ng-bind="flow.defaultAnalysisText"></option>
+        <select class="form-control" id="analysisSelection" ng-model="selectedAnalysis" name="selectedAnalysis" ng-change="loadAnalysis()">
+            <option disabled selected ng-bind="flow.defaultAnalysisText"></option>
+            <option ng-repeat="analysisName in flow.analysisNames" value="{{analysisName}}" ng-bind="analysisName"></option>
         </select>
     </div>
     <div class="form-group" ng-if="flow.source == 'new'">
         <label class="control-label" for="analysisNameInput">Analysis Name</label>
-        <input type="text" class="form-control" id="analysisNameInput" maxlength="100"
+        <input type="text" class="form-control" id="analysisNameInput" maxlength="100" ng-model="analysis.name"
                placeholder="Insert name to save template for future flows">
     </div>
     <div class="form-group">
@@ -86,15 +85,17 @@
     </div>
 
     <div class="form-group">
-        <table width="100%">
+        <table width="100%" style="table-layout:fixed;">
             <tr>
-                <td align="left" width="70%"><div>
+                <td align="left" style="word-wrap:break-word;"><div>
                     <label ng-bind="flow.submitMsg" ng-style="flow.submitStyle"
-                           ng-if="flowMainForm.$pristine && flowMainForm.$valid"></label>
+                           ng-if="flowMainForm.$pristine || analysis.name == analysis.submitted"></label>
                 </div></td>
-                <td align="right" style="padding-right:5px;">
-                    <button type="button" class="btn btn-default">Save Analysis</button></td>
-                <td align="right"><button type="button" class="btn btn-default"
+                <td align="right" style="padding-right:5px;" width="120">
+                    <button type="button" class="btn btn-default" ng-click="saveAnalysis()"
+                            ng-disabled="analysis.name == null || analysis.name.length === 0
+                            || unitsScope.unitGridOptions.data.length === 0">Save Analysis</button></td>
+                <td align="right" width="87"><button type="button" class="btn btn-default"
                             ng-click="runFlow()"
                             ng-disabled="flowMainForm.$pristine || flowMainForm.$invalid ||
                             unitsScope.unitGridOptions.data.length === 0">Run Flow</button></td>

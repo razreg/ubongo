@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 public class QueueManager {
 
-    // TODO make these values configurable
     /* max time (in milliseconds) the producer thread awaits to be notified of new tasks.
        After this amount of time, it will check if there are new tasks in the DB. */
     private static final int MAX_PRODUCER_IDLE_TIME = 1000 * 60 * 30; // 30 minutes

@@ -20,6 +20,8 @@ public class DBConstants {
     public final static String QUERY_RESUME_TASK = "resume_task";
     public final static String QUERY_CREATE_REQUEST = "create_request";
     public final static String QUERY_GET_NEW_REQUESTS = "get_new_requests";
+    public final static String QUERY_GET_ALL_REQUESTS = "get_all_requests";
+    public final static String QUERY_COUNT_REQUESTS = "count_requests";
     public final static String QUERY_UPDATE_REQUEST_STATUS = "update_request_status";
     public final static String QUERY_SAVE_MACHINES = "save_machines";
     public final static String QUERY_GET_MACHINES = "get_machines";
@@ -53,6 +55,9 @@ public class DBConstants {
     public final static String REQUESTS_ENTITY_ID = "entity_id";
     public final static String REQUESTS_ACTION = "action";
     public final static String REQUESTS_STATUS = "status";
+    public final static String REQUESTS_LAST_UPDATED = "last_updated";
+    public final static String REQUESTS_INSERTION_TIME = "insertion_time";
+    public final static String REQUESTS_COUNT = "countValue";
 
     public final static String MACHINES_TABLE_NAME = "machines";
     public final static String MACHINES_ID = "id";

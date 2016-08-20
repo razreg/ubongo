@@ -1,14 +1,15 @@
 package ubongo.rest;
 
+import ubongo.common.datatypes.ExecutionRequest;
 import ubongo.common.datatypes.FlowData;
 import ubongo.common.datatypes.Machine;
 import ubongo.common.datatypes.Task;
 import ubongo.common.datatypes.unit.Unit;
 import ubongo.persistence.PersistenceException;
 
+import java.sql.Timestamp;
 import java.util.List;
 
-// TODO add documentation to ServiceProvider
 public interface ServiceProvider {
 
     List<Machine> getAllMachines() throws PersistenceException;
@@ -21,6 +22,10 @@ public interface ServiceProvider {
     void runFlow(int flowId) throws PersistenceException;
 
     List<String> getAllAnalysisNames(int limit) throws PersistenceException;
+
+    void createAnalysis(String analysisName, List<Unit> units) throws PersistenceException;
+
+    List<Unit> getAnalysis(String analysisName) throws PersistenceException;
 
     /**
      * Retrieves all flows stored in the DB.
@@ -75,6 +80,10 @@ public interface ServiceProvider {
     void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException;
 
     void generateBashFileForNewUnit(int unitId) throws PersistenceException; // TODO use in UI
+
+    int countRequests(Timestamp t) throws PersistenceException;
+
+    List<ExecutionRequest> getAllRequests(int limit) throws PersistenceException;
 
     void start();
 

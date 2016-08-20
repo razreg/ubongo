@@ -7,14 +7,20 @@
     <div>
         <table width="100%">
             <tr>
-                <td width="180"><label class="control-label">Server's last heartbeat:</label></td>
-                <td><div ng-bind="server.lastHeartbeat" style="margin-bottom:5px;"></div></td>
+                <td width="200"><label class="control-label">Server's last heartbeat:</label></td>
+                <td colspan="2"><div ng-bind="server.lastHeartbeat" style="margin-bottom:5px;"></div></td>
             </tr>
             <tr ng-if="currMachine.id >= 0">
                 <td><label class="control-label">Machine's last heartbeat:</label></td>
                 <td><div ng-bind="currMachine.lastHeartbeat" style="margin-bottom:5px;"></div></td>
+                <td width="98"><form name="machineActivation">
+                    <button type="button" class="btn btn-default btn-task-action"
+                            ng-click="changeActivationStatus()" style="width:100%;"
+                            ng-bind="currMachine.active ? 'Deactivate' : 'Activate'"
+                            ng-disabled="selectedOption=='0' || currFlow.status == 'COMPLETED'"></button>
+                </form></td>
             </tr><tr>
-                <td colspan="2" align="center" ng-style="err.style" ng-if="err.display" ng-bind="err.msg"></td>
+                <td colspan="3" align="center" ng-style="err.style" ng-if="err.display" ng-bind="err.msg"></td>
             </tr>
         </table>
     </div>

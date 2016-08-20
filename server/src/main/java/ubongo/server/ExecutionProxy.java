@@ -34,10 +34,6 @@ public enum ExecutionProxy {
                 MachineConstants.KILL_TASK_REQUEST );
     }
 
-    public MachineStatistics getStatistics(Machine machine) {
-        return new MachineStatistics(0); // TODO
-    }
-
     private void sendRequestToMachine(Task task, String queue, String request) {
         logger.info("Sending request to the machine. Queue = [" + queue+ "] RequestTask = [ "+ request+ "] id = [" + task.getId() + "]");
         try {

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import ubongo.common.datatypes.ExecutionRequest;
 import ubongo.common.datatypes.FlowData;
 import ubongo.common.datatypes.Machine;
 import ubongo.common.datatypes.Task;
@@ -20,6 +21,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.UnmarshalException;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.List;
 
 @Path("/api")
@@ -138,6 +141,7 @@ public final class RestService {
             @PathParam("machineId") int machineId,
             @DefaultValue("false") @QueryParam("activate") boolean activate,
             @DefaultValue("false") @QueryParam("deactivate") boolean deactivate) throws UbongoHttpException {
+        init();
         if (activate) {
             if (deactivate) {
                 throw new UbongoHttpException(400, "Received a POST request to machines/"
@@ -161,9 +165,34 @@ public final class RestService {
     }
 
     @GET
-    @Path("analyses/names")
+    @Path("analyses/{analysisName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAllAnalysisNames(@QueryParam("limit") int limit) throws UbongoHttpException {
+    public String getAnalysis(@PathParam("analysisName") String analysisName) throws UbongoHttpException {
+        init();
+        ObjectMapper mapper = new ObjectMapper();
+        String response;
+        try {
+            List<Unit> units = serviceProvider.getAnalysis(analysisName);
+            if (units == null) {
+                throw new UbongoHttpException(500, "Failed to retrieve analysis from DB.");
+            }
+            response = mapper.writeValueAsString(units);
+        } catch (PersistenceException e) {
+            throw new UbongoHttpException(500, "Failed to read analysis from DB. Details: " + e.getMessage());
+        } catch (JsonProcessingException e) {
+            throw new UbongoHttpException(500, "Failed to serialize analysis units to JSON.");
+        }
+        return response;
+    }
+
+    @GET
+    @Path("analyses")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getAllAnalysisNames(@DefaultValue("false") @QueryParam("names") boolean names,
+                                      @QueryParam("limit") int limit) throws UbongoHttpException {
+        if (!names) {
+            throw new UbongoHttpException(500, "Invalid request: names=true must be set.");
+        }
         init();
         ObjectMapper mapper = new ObjectMapper();
         String response;
@@ -180,6 +209,38 @@ public final class RestService {
             throw new UbongoHttpException(500, "Failed to read analysis names from DB. Details: " + e.getMessage());
         }
         return response;
+    }
+
+    @POST
+    @Path("analyses")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void createAnalysis(String requestBody) throws UbongoHttpException {
+        init();
+        String analysisName;
+        List<Unit> units;
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode jsonNode = mapper.readTree(requestBody);
+            if (jsonNode.hasNonNull("analysisName")) {
+                analysisName = jsonNode.get("analysisName").asText();
+            } else {
+                throw new UbongoHttpException(400, "Analysis name cannot be empty nor null.");
+            }
+            if (jsonNode.hasNonNull("units")) {
+                units = mapper.readValue(jsonNode.get("units").toString(),
+                        new TypeReference<List<Unit>>() {
+                        });
+            } else {
+                throw new UbongoHttpException(400, "Analysis must contain at least one unit.");
+            }
+            serviceProvider.createAnalysis(analysisName, units);
+        } catch (IOException e) {
+            throw new UbongoHttpException(400, "The request is malformed - expected array of unit objects but received: "
+                    + requestBody);
+        } catch (PersistenceException e) {
+            throw new UbongoHttpException(500, "Failed to create analysis in the DB");
+        }
     }
 
     @GET
@@ -412,5 +473,32 @@ public final class RestService {
             throw new UbongoHttpException(500, "Failed to serialize units to JSON.");
         }
         return response;
+    }
+
+    @GET
+    @Path("requests")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getRequests(@DefaultValue("false") @QueryParam("count") boolean count,
+                              @QueryParam("t") Long fromTime,
+                              @QueryParam("limit")int limit) throws UbongoHttpException {
+        init();
+        if (count) {
+            try {
+                return Integer.toString(serviceProvider
+                        .countRequests(new Timestamp(fromTime == null ? 0 : fromTime)));
+            } catch (PersistenceException e) {
+                throw new UbongoHttpException(500, "Failed to count requests.");
+            }
+        } else {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                List<ExecutionRequest> requests = serviceProvider.getAllRequests(limit);
+                return mapper.writeValueAsString(requests);
+            } catch (JsonProcessingException e) {
+                throw new UbongoHttpException(500, "Failed to serialize requests to JSON.");
+            } catch (PersistenceException e) {
+                throw new UbongoHttpException(500, "Failed to retrieve requests from the DB.");
+            }
+        }
     }
 }

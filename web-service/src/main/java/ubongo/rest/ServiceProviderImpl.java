@@ -12,6 +12,7 @@ import ubongo.persistence.PersistenceImpl;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class ServiceProviderImpl implements ServiceProvider {
@@ -63,6 +64,16 @@ public class ServiceProviderImpl implements ServiceProvider {
     @Override
     public List<String> getAllAnalysisNames(int limit) throws PersistenceException {
         return persistence.getAnalysisNames(limit);
+    }
+
+    @Override
+    public void createAnalysis(String analysisName, List<Unit> units) throws PersistenceException {
+        persistence.createAnalysis(analysisName, units);
+    }
+
+    @Override
+    public List<Unit> getAnalysis(String analysisName) throws PersistenceException {
+        return persistence.getAnalysis(analysisName);
     }
 
     @Override
@@ -136,13 +147,14 @@ public class ServiceProviderImpl implements ServiceProvider {
         persistence.saveRequest(request);
     }
 
+    // TODO change to ExecutionRequest and handle the request in the server!!
     @Override
     public void generateBashFileForNewUnit(int unitId) throws PersistenceException {
         List<Unit> allUnits = getAllUnits();
         if (allUnits.size() < unitId) {
             throw new PersistenceException("Configuration file was not found for unit " + unitId);
         }
-        Unit unit = allUnits.get(unitId - 1);
+        Unit unit = allUnits.get(unitId - 1); // TODO don't get according to order - get by ID!
         String unitBashPath = Paths.get(unitsDirPath, Unit.getUnitBashFileName(unit.getId())).toString();
         try {
             UnitAdder.generateBashFile(unit, unitBashPath);
@@ -154,6 +166,16 @@ public class ServiceProviderImpl implements ServiceProvider {
             }
             throw new PersistenceException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public int countRequests(Timestamp t) throws PersistenceException {
+        return persistence.countRequests(t);
+    }
+
+    @Override
+    public List<ExecutionRequest> getAllRequests(int limit) throws PersistenceException {
+        return persistence.getAllRequests(limit);
     }
 
     public void clearDebugData() {

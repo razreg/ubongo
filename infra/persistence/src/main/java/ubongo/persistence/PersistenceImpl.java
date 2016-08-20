@@ -11,6 +11,7 @@ import ubongo.persistence.db.SQLExceptionHandler;
 import ubongo.persistence.exceptions.DBProxyException;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -71,8 +72,16 @@ public class PersistenceImpl implements Persistence {
 
     @Override
     public List<String> getAnalysisNames(int limit) throws PersistenceException {
-        // TODO use limit param!
-        return new DBMethodInvoker<>(sqlExceptionHandler, dbProxy::getAnalysisNames).invoke();
+        int numRetries = 0;
+        while (numRetries++ < MAX_NUM_RETRIES) {
+            try {
+                return dbProxy.getAnalysisNames(limit);
+            } catch (DBProxyException e) {
+                DBProxyException ret;
+                if ((ret = handleDbProxyException(e, numRetries)) != null) throw ret;
+            }
+        }
+        throw new PersistenceException("Unknown reason"); // not possible
     }
 
     @Override
@@ -254,6 +263,34 @@ public class PersistenceImpl implements Persistence {
             try {
                 dbProxy.resumeTask(taskId);
                 return;
+            } catch (DBProxyException e) {
+                DBProxyException ret;
+                if ((ret = handleDbProxyException(e, numRetries)) != null) throw ret;
+            }
+        }
+        throw new PersistenceException("Unknown reason"); // not possible
+    }
+
+    @Override
+    public List<ExecutionRequest> getAllRequests(int limit) throws PersistenceException {
+        int numRetries = 0;
+        while (numRetries++ < MAX_NUM_RETRIES) {
+            try {
+                return dbProxy.getAllRequests(limit);
+            } catch (DBProxyException e) {
+                DBProxyException ret;
+                if ((ret = handleDbProxyException(e, numRetries)) != null) throw ret;
+            }
+        }
+        throw new PersistenceException("Unknown reason"); // not possible
+    }
+
+    @Override
+    public int countRequests(Timestamp t) throws PersistenceException {
+        int numRetries = 0;
+        while (numRetries++ < MAX_NUM_RETRIES) {
+            try {
+                return dbProxy.countRequests(t);
             } catch (DBProxyException e) {
                 DBProxyException ret;
                 if ((ret = handleDbProxyException(e, numRetries)) != null) throw ret;

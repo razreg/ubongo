@@ -1,0 +1,15 @@
+<div class="jumbotron jumbotron-additions" ng-controller="RequestsController">
+    <h1>Requests</h1>
+    <p></p>
+    <table width="100%" style="table-layout:fixed;">
+        <tr>
+            <td align="left" ng-style="err.style" ng-if="err.display" ng-bind="err.msg"
+                style="word-wrap:break-word;"></td>
+            <td align="right">
+                <button type="button" class="btn btn-default"
+                        ng-click="fetchRequests()" style="width:80px;margin-bottom:4px;">Refresh</button></td>
+        </tr>
+    </table>
+    <div id="requestsGrid" ui-grid="requestGridOptions" class="gridStyle" style="height:45vh;"
+         ui-grid-move-columns ui-grid-resize-columns></div>
+</div>

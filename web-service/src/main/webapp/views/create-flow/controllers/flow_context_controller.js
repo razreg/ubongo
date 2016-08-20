@@ -1,38 +1,42 @@
-function FlowContextController($scope, $http) {
+(function(){
+  'use strict';
 
-  var FAILED_LOADING_ANALYSIS_NAMES = 'Failed loading analysis names';
+  angular.module('ubongoApp').controller('FlowContextController',
+    ['$scope', '$http', function ($scope, $http) {
 
-  $scope.registerContextScope($scope);
+      var FAILED_LOADING_ANALYSIS_NAMES = 'Failed loading analysis names';
 
-  $scope.flow = {
-    source: 'new',
-    analysisNames: [],
-    defaultAnalysisText: '',
-    allSubjects: 'custom',
-    allRuns: 'custom',
-    submitMsg: '',
-    submitStyle: {color: 'black'}
-  };
+      $scope.registerContextScope($scope);
+      $scope.analysis = { name: '', submitted: '5ome_rand0m_5tr1ng%$^&' };
 
-  $scope.flowSourceAnalysis = function() {
-    if ($scope.flow.analysisNames.length === 0) {
-      $scope.flow.defaultAnalysisText = 'Loading analysis names...';
-      $http.get('rest/api/analyses/names')
-        .success(function (data, status, headers, config) {
-          if (Array.isArray(data)) {
-            $scope.flow.analysisNames = data;
-            if (data.length > 0) {
-              $scope.flow.defaultAnalysisText = 'Select analysis from list';
+      $scope.flow = {
+        source: 'new',
+        analysisNames: [],
+        defaultAnalysisText: '',
+        allSubjects: 'custom',
+        allRuns: 'custom',
+        submitMsg: '',
+        submitStyle: {color: 'black'}
+      };
+
+      $scope.flowSourceAnalysis = function() {
+        $scope.flow.defaultAnalysisText = 'Loading analysis names...';
+        $http.get('rest/api/analyses?names=true')
+          .success(function (data, status, headers, config) {
+            if (Array.isArray(data)) {
+              $scope.flow.analysisNames = data;
+              if (data.length > 0) {
+                $scope.flow.defaultAnalysisText = 'Select analysis from list';
+              } else {
+                $scope.flow.defaultAnalysisText = 'No analyses available';
+              }
             } else {
-              $scope.flow.defaultAnalysisText = 'No analyses available';
+              $scope.flow.defaultAnalysisText = FAILED_LOADING_ANALYSIS_NAMES;
             }
-          } else {
+          })
+          .error(function (data, status, headers, config) {
             $scope.flow.defaultAnalysisText = FAILED_LOADING_ANALYSIS_NAMES;
-          }
-        })
-        .error(function (data, status, headers, config) {
-          $scope.flow.defaultAnalysisText = FAILED_LOADING_ANALYSIS_NAMES;
-        });
-    }
-  };
-}
+          });
+      };
+    }]);
+})();

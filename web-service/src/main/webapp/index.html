@@ -6,6 +6,7 @@
     <!-- Bootstrap core css -->
     <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="css/cerulean-bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.css"> <!-- TODO -->
     <!-- custom css -->
     <link href="css/dashboard.css" rel="stylesheet" type="text/css" />
     <link href="css/style-auto.css" rel="stylesheet" type="text/css" />
@@ -24,13 +25,32 @@
     <script type="text/javascript" src="js/vendor/jquery-3.1.0.min.js"></script>
     <script type="text/javascript" src="js/vendor/angular.min.js"></script>
     <script type="text/javascript" src="js/vendor/angular-route.min.js"></script>
+
+    <!-- TODO make local -->
+    <script src="http://momentjs.com/downloads/moment.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.js"></script>
+
     <script type="text/javascript" src="lib/angular-ui-grid/ui-grid.min.js"></script>
     <script type="text/javascript" src="lib/ui-grid-draggable-rows/js/draggable-rows.js"></script>
+
+    <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+    <script type="text/javascript" src="services/notifications_service.js"></script>
+    <script type="text/javascript" src="js/header_controller.js"></script>
+
     <script type="text/javascript" src="views/create-flow/controllers/flow_controller.js"></script>
     <script type="text/javascript" src="views/create-flow/controllers/flow_context_controller.js"></script>
     <script type="text/javascript" src="views/create-flow/controllers/units_selection_controller.js"></script>
+
+    <script type="text/javascript" src="views/dashboard/controllers/dashboard_controller.js"></script>
     <script type="text/javascript" src="views/dashboard/controllers/tasks_controller.js"></script>
     <script type="text/javascript" src="views/dashboard/controllers/machines_controller.js"></script>
-    <script type="text/javascript" src="js/app.js"></script>
+
+    <script type="text/javascript" src="views/management/controllers/management_controller.js"></script>
+    <script type="text/javascript" src="views/management/controllers/management_actions_controller.js"></script>
+    <script type="text/javascript" src="views/management/controllers/requests_controller.js"></script>
 </body>
 </html>

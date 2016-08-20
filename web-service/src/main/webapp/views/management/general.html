@@ -1,0 +1,54 @@
+<div class="jumbotron jumbotron-additions" ng-controller="ManagementActionsController">
+    <h1>Actions</h1>
+    <p></p>
+    <div class="form-group">
+        <ng-form name="genBashForm">
+            <label class="control-label" for="unitSelectForBash">Generate Unit Bash Script File</label>*
+            <table width="100%">
+                <tr>
+                    <td><select class="form-control" id="unitSelectForBash"
+                                ng-model="selectedUnitForBash" ng-options="unit.name for unit in units">
+                        <option disabled selected ng-bind="disabledOptionText.value"></option>
+                    </select></td>
+                    <td width="10%" align="right" style="padding-left:5px">
+                        <button id="genBashButton" type="button" class="btn btn-default"
+                                ng-disabled="genBashForm.$invalid || genBashForm.$pristine"
+                                ng-click="generateBash()">Generate</button></td>
+                </tr>
+                <tr>
+                    <td>
+                        <p></p>
+                        (*) <strong>NOTICE</strong>: Before clicking 'Generate', please make sure the selected unit's .xml and .m files are
+                        located in the units folder at the server.
+                        <p></p>
+                    </td>
+                </tr>
+            </table>
+        </ng-form>
+    </div>
+
+    <div class="form-group">
+        <ng-form name="downloadForm">
+            <label class="control-label">Download Logs</label>
+            <table width="100%" style="table-layout:fixed;">
+                <tr>
+                    <td width="90">Start date: </td>
+                    <td width="250" align="left">
+                        <div ng-controller="LogsDatePicker" ng-cloak>
+                            <md-content layout-padding style="background-color:transparent;">
+                                <div flex-gt-xs>
+                                <md-datepicker ng-model="logsStartDate" md-placeholder="Start date" ng-required="true"
+                                               md-min-date="minDate" md-max-date="maxDate" style="background-color:transparent;"></md-datepicker>
+                                </div>
+                            </md-content>
+                        </div>
+                    </td>
+                    <td align="right" style="padding-left:5px">
+                        <button id="downloadButton" type="button" class="btn btn-default"
+                                ng-disabled="downloadForm.$invalid || downloadForm.$pristine"
+                                ng-click="">Download</button></td>
+                </tr>
+            </table>
+        </ng-form>
+    </div>
+</div>

@@ -3,6 +3,7 @@ package ubongo.persistence;
 import ubongo.common.datatypes.*;
 import ubongo.common.datatypes.unit.Unit;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 
@@ -181,6 +182,22 @@ public interface Persistence {
      * @throws PersistenceException if the update has failed.
      */
     void resumeTask(int taskId) throws PersistenceException;
+
+    /**
+     * Return a list of ExecutionRequests in last-updated descending order up to the given limit.
+     * @param limit corresponds to the SQL LIMIT keyword.
+     * @return list of ExecutionRequests.
+     * @throws PersistenceException if the query failed.
+     */
+    List<ExecutionRequest> getAllRequests(int limit) throws PersistenceException;
+
+    /**
+     * Returns the number of ExecutionRequests stored in the DB, which were created after the given timestamp.
+     * @param t is the request creation time limit.
+     * @return number of ExecutionRequests created after t.
+     * @throws PersistenceException if the count failed.
+     */
+    int countRequests(Timestamp t) throws PersistenceException;
 
     /**
      * Retrieves all execution requests in status 'New' in the DB.

@@ -16,7 +16,7 @@ public class Machine implements Serializable {
     @XmlElement private String description;
 
     private boolean connected = false;
-    private boolean active = false;
+    private boolean active = true;
     private java.sql.Timestamp lastHeartbeat;
 
     public int getId() {

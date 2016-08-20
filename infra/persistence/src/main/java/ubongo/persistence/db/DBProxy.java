@@ -202,7 +202,6 @@ public class DBProxy {
         }
     }
 
-    // TODO populate units with parameters from the last run (query tasks for these unitIds)?
     public List<Unit> getAnalysis(String analysisName) throws DBProxyException, UnitFetcherException {
         connect();
         List<Unit> units = new ArrayList<>();
@@ -224,7 +223,7 @@ public class DBProxy {
         return units;
     }
 
-    public List<String> getAnalysisNames() throws DBProxyException {
+    public List<String> getAnalysisNames(int limit) throws DBProxyException {
         connect();
         List<String> analysisNames = new ArrayList<>();
         String tableName = getTableName(DBConstants.UNITS_TABLE_NAME);
@@ -233,6 +232,7 @@ public class DBProxy {
             String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_ANALYSIS_NAMES)
                     .replace("$unitsTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, limit);
             ResultSet resultSet = executeQuery(statement);
             while (resultSet.next()) {
                 analysisNames.add(resultSet.getString(DBConstants.UNITS_ANALYSIS_NAME));
@@ -313,6 +313,46 @@ public class DBProxy {
             String errorMsg = "Failed to " + (activate ? "" : "de") + "activate machine with ID = " + machineId;
             throw new DBProxyException(errorMsg, e);
         }
+    }
+
+    public int countRequests(Timestamp t) throws DBProxyException {
+        connect();
+        String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
+        String errorMsg = "Failed to retrieve requests from DB.";
+        try {
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_COUNT_REQUESTS)
+                    .replace("$requestsTable", requestsTableName);
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setTimestamp(1, t);
+            ResultSet resultSet = executeQuery(statement);
+            if (resultSet.next()) {
+                return resultSet.getInt(DBConstants.REQUESTS_COUNT);
+            } else {
+                throw new DBProxyException("Failed to count requests: query did not return any result.");
+            }
+        } catch (SQLException e) {
+            throw new DBProxyException(errorMsg, e);
+        }
+    }
+
+    public List<ExecutionRequest> getAllRequests(int limit) throws DBProxyException {
+        connect();
+        List<ExecutionRequest> requests = new ArrayList<>();
+        String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
+        String errorMsg = "Failed to retrieve requests from DB.";
+        try {
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_ALL_REQUESTS)
+                    .replace("$requestsTable", requestsTableName);
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, limit);
+            ResultSet resultSet = executeQuery(statement);
+            while (resultSet.next()) {
+                requests.add(requestFromResultSet(resultSet));
+            }
+        } catch (SQLException e) {
+            throw new DBProxyException(errorMsg, e);
+        }
+        return requests;
     }
 
     public List<ExecutionRequest> getNewRequests() throws DBProxyException {
@@ -584,6 +624,8 @@ public class DBProxy {
         String statusStr = resultSet.getString(DBConstants.REQUESTS_STATUS);
         request.setAction(actionStr == null ? null : ExecutionRequest.Action.fromString(actionStr));
         request.setStatus(statusStr == null ? null : ExecutionRequest.Status.fromString(statusStr));
+        request.setLastUpdated(resultSet.getTimestamp(DBConstants.REQUESTS_LAST_UPDATED));
+        request.setCreationTime(resultSet.getTimestamp(DBConstants.REQUESTS_INSERTION_TIME));
         return request;
     }
 
