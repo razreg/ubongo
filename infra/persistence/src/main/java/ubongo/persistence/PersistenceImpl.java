@@ -350,8 +350,17 @@ public class PersistenceImpl implements Persistence {
     }
 
     @Override
-    public List<Machine> getAllMachines() throws PersistenceException {
-        return new DBMethodInvoker<>(sqlExceptionHandler, dbProxy::getAllMachines).invoke();
+    public List<Machine> getAllMachines(boolean includeServer) throws PersistenceException {
+        int numRetries = 0;
+        while (numRetries++ < MAX_NUM_RETRIES) {
+            try {
+                return dbProxy.getAllMachines(includeServer);
+            } catch (DBProxyException e) {
+                DBProxyException ret;
+                if ((ret = handleDbProxyException(e, numRetries)) != null) throw ret;
+            }
+        }
+        throw new PersistenceException("Unknown reason"); // not possible
     }
 
     @Override

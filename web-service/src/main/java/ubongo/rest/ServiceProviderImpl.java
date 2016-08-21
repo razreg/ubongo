@@ -52,7 +52,7 @@ public class ServiceProviderImpl implements ServiceProvider {
 
     @Override
     public List<Machine> getAllMachines() throws PersistenceException {
-        return persistence.getAllMachines();
+        return persistence.getAllMachines(true);
     }
 
     @Override

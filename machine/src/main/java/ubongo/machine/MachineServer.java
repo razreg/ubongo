@@ -5,11 +5,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ubongo.common.constants.MachineConstants;
 import ubongo.common.constants.SystemConstants;
-import ubongo.common.datatypes.MachineStatistics;
 import ubongo.common.datatypes.RabbitData;
 import ubongo.common.datatypes.Task;
+import ubongo.persistence.*;
 
+import javax.xml.bind.UnmarshalException;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -23,28 +26,37 @@ import java.util.concurrent.TimeoutException;
  */
 public class MachineServer {
 
-    public static Map<String, Thread> unitThreads;
-
     private static Logger logger = LogManager.getLogger(MachineServer.class);
 
-    private MachineStatistics machineStatistics;
-    static String serverAddress;
+    public static Map<String, Thread> unitThreads;
+    private static Configuration configuration;
+    private static String serverAddress;
+    private static String unitsDir;
+    private static String queriesPath;
+    private static ScheduledExecutorService heartbeatScheduler = Executors.newScheduledThreadPool(1);
 
     public MachineServer() {
         unitThreads = new HashMap<>();
-        this.machineStatistics = new MachineStatistics(unitThreads.size());
         serverAddress = MachineConstants.SERVER_FALLBACK;
     }
 
-    public void start() {
-        trackMachinePerformance();
+    public void start() throws PersistenceException {
+        Persistence persistence = new PersistenceImpl(unitsDir, configuration.getDbConnectionProperties(),
+                configuration.getSshConnectionProperties(), null, queriesPath, true); // TODO change last argument to some system property and not constant? eventually should be 'false'
+        persistence.start();
+        initHeartbeat(persistence);
     }
 
     public static void main(String[] args) {
 
         logger.info("Initializing machine-server...");
+        if (!initSystemPropertyObjects()) return;
         MachineServer machineServer = new MachineServer();
-        // machineServer.start(); // TODO remove comment
+        try {
+            machineServer.start();
+        } catch (PersistenceException e) {
+            logger.error("Failed to start persistence module in the machine", e);
+        }
         final String TASKS_QUEUE_NAME = SystemConstants.UBONGO_RABBIT_TASKS_QUEUE;
         final String KILL_TASKS_QUEUE_NAME = SystemConstants.UBONGO_RABBIT_KILL_TASKS_QUEUE;
         try {
@@ -52,8 +64,36 @@ public class MachineServer {
             tasksListener(TASKS_QUEUE_NAME, '+');
             tasksListener(KILL_TASKS_QUEUE_NAME, 'x');
         } catch (Exception e){
-            logger.error("Failed receiving message via rabbit mq error: " + e.getMessage());
+            logger.error("Failed receiving message via rabbit mq error: " + e.getMessage(), e);
         }
+    }
+
+    private static boolean initSystemPropertyObjects() {
+        unitsDir = System.getProperty(MachineConstants.ARG_UNITS);
+        String configPath = System.getProperty(MachineConstants.CONFIG_PATH);
+        queriesPath = System.getProperty(MachineConstants.ARG_QUERIES_PATH);
+        boolean ret = true;
+        if (unitsDir == null) {
+            logger.error("Please supply units directory path as run parameter: -D" +
+                    MachineConstants.ARG_UNITS + "=<path>");
+            ret = false;
+        } else if (queriesPath == null) {
+            logger.error("Please supply path to queries.properties as run parameter: -D" +
+                    MachineConstants.ARG_QUERIES_PATH + "=<path>");
+            ret = false;
+        } else if (configPath == null) {
+            logger.error("Please supply configuration path as run parameter: -D" +
+                    MachineConstants.CONFIG_PATH + "=<path>");
+            ret = false;
+        }
+        if (!ret) return false;
+        try {
+            configuration = Configuration.loadConfiguration(configPath);
+        } catch (UnmarshalException e) {
+            logger.error("Configuration path parameter is not a file or the configuration file is invalid");
+            return false;
+        }
+        return true;
     }
 
     private static void tasksListener(String queue, char actionSign) throws IOException, TimeoutException {
@@ -70,12 +110,11 @@ public class MachineServer {
                     RabbitData message = RabbitData.fromBytes(body);
                     logger.info(" ["+actionSign+"] Received '" + message.getMessage() + "'");
                     String baseDir = System.getProperty(MachineConstants.ARG_DIR);
-                    String unitsDir = System.getProperty(MachineConstants.ARG_UNITS);
                     serverAddress = System.getProperty(MachineConstants.ARG_SERVER);
-                    String configPath = System.getProperty(MachineConstants.CONFIG_PATH);
                     logger.info("Server address: [" + serverAddress + "], base directory path: [" + baseDir + "]");
                     String threadName = getThreadName(message.getTask());
-                    RequestHandler requestHandler = new RequestHandler(threadName, message, serverAddress, baseDir, unitsDir, configPath);
+                    RequestHandler requestHandler =
+                            new RequestHandler(threadName, message, serverAddress, baseDir, unitsDir, configuration);
                     if ((message.getMessage()).equals(MachineConstants.BASE_UNIT_REQUEST)) {
                         unitThreads.put(threadName, requestHandler);
                     }
@@ -93,11 +132,17 @@ public class MachineServer {
         return MachineConstants.BASE_UNIT_REQUEST + task.getId();
     }
 
-    private void trackMachinePerformance() {
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        final Runnable sampler = new MachinePerformanceSampler(machineStatistics);
-        scheduler.scheduleAtFixedRate(sampler, 0, 30, TimeUnit.SECONDS);
-
+    private static void initHeartbeat(Persistence persistence) throws PersistenceException {
+        InetAddress ip;
+        try {
+            ip = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            throw new PersistenceException("Failed to get machine's IP address", e);
+        }
+        String host = ip.getHostAddress();
+        logger.info("Starting to send heartbeat for host: " + host);
+        final Runnable heartbeatSender = new HeartbeatSender(persistence, host);
+        heartbeatScheduler.scheduleAtFixedRate(heartbeatSender, 0, 60, TimeUnit.SECONDS);
     }
 
 }

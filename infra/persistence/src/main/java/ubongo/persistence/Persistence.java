@@ -229,10 +229,11 @@ public interface Persistence {
 
     /**
      * Returns all the machines from the DB.
+     * @param includeServer is a flag that tells the DB whether to fetch the server record or not.
      * @return all the machines stored in the DB.
      * @throws PersistenceException if the retrieval from the DB has failed.
      */
-    List<Machine> getAllMachines() throws PersistenceException;
+    List<Machine> getAllMachines(boolean includeServer) throws PersistenceException;
 
     /**
      * Replaces the row in thd DB that corresponds to machine with the new value

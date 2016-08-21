@@ -23,6 +23,7 @@
       function fetchMachines() {
         $http.get('rest/api/machines')
           .success(function(data, status, headers, config) {
+            var machinesWithoutServer = [];
             for (var i = 0; i < data.length; ++i) {
               if (data[i].lastHeartbeat <= 0) {
                 data[i].lastHeartbeat = '-';
@@ -34,8 +35,14 @@
                 data[i].lastHeartbeat = dateInNiceFormat(date);
                 data[i].connected = !isDateTooOld(utcSeconds);
               }
+              if (data[i].id*1 != 0) {
+                machinesWithoutServer.push(data[i]);
+                $scope.currMachine = {id: -1};
+              } else {
+                $scope.server.lastHeartbeat = data[i].lastHeartbeat;
+              }
             }
-            $scope.machines = data;
+            $scope.machines = machinesWithoutServer;
             $scope.machineGridOptions.data = $scope.machines;
           })
           .error(function(data, status, headers, config) {
@@ -44,7 +51,7 @@
       }
 
       function isDateTooOld(utcSeconds) {
-        return new Date().getUTCSeconds() - utcSeconds > 60 * 3; // 3 minutes interval to detect disconnected machine
+        return new Date().getTime()/1000 - utcSeconds > 60 * 3; // 3 minutes interval to detect disconnected machine
       }
 
       // machines grid

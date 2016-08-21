@@ -3,6 +3,7 @@ package ubongo.persistence.db;
 public class DBConstants {
 
     public final static String DEBUG_PREFIX = "zz_debug_";
+    public final static int SERVER_ID = 0;
 
     public final static String QUERY_GET_FLOW_TASKS = "get_flow_tasks";
     public final static String QUERY_GET_NEW_TASKS = "get_new_tasks";

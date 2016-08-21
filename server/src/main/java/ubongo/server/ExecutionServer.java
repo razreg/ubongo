@@ -219,7 +219,7 @@ public class ExecutionServer {
 
     private static void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException {
         INSTANCE.persistence.changeMachineActivityStatus(machineId, activate);
-        INSTANCE.machinesManager.setMachines(INSTANCE.persistence.getAllMachines());
+        INSTANCE.machinesManager.setMachines(INSTANCE.persistence.getAllMachines(false));
     }
 
     private static void killTask(Task task) {

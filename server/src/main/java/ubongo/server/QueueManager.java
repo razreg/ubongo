@@ -137,7 +137,8 @@ public class QueueManager {
             TaskStatus status = task.getStatus();
             if (status == TaskStatus.COMPLETED ||
                 status == TaskStatus.FAILED ||
-                status == TaskStatus.STOPPED) {
+                status == TaskStatus.STOPPED ||
+                status == TaskStatus.ON_HOLD) {
                 synchronized (dependencyMap) {
                     while (updatingDependencies) {
                         dependencyMap.wait();
@@ -189,7 +190,8 @@ public class QueueManager {
         if (taskIdsSet != null) {
             taskIdsSet.remove(task.getId());
             // if the following tasks can be executed or should be on hold
-            if (taskIdsSet.isEmpty() || task.getStatus() == TaskStatus.FAILED || task.getStatus() == TaskStatus.STOPPED) {
+            if (taskIdsSet.isEmpty() || task.getStatus() == TaskStatus.FAILED ||
+                    task.getStatus() == TaskStatus.STOPPED || task.getStatus() == TaskStatus.ON_HOLD) {
                 Set<Task> pendingTasks = dependencyMap.get(dependencyKey.getId());
                 if (pendingTasks != null) {
                     TaskStatus newStatus = task.getStatus() == TaskStatus.COMPLETED ?
@@ -268,7 +270,14 @@ public class QueueManager {
                     if (!taskReadyForExecute(currTask)) {
                         continue;
                     }
-                    Machine machine = machinesManager.getAvailableMachine();
+                    Machine machine = null;
+                    try {
+                        machine = machinesManager.getAvailableMachine();
+                    } catch (MachinesManagementException e) {
+                        logger.warn("Queue consumer thread failed to find available machine to run task. Details: " + e.getMessage(), e);
+                        task.setStatus(TaskStatus.ON_HOLD);
+                        updateTaskAfterExecution(task);
+                    }
                     currTask.setMachine(machine);
                     currTask.setStatus(TaskStatus.PROCESSING);
                     synchronized (taskIdsInCancel) {
@@ -284,10 +293,6 @@ public class QueueManager {
                 }
             } catch (InterruptedException e) {
                 logger.debug("Queue consumer thread shutting down after interrupt");
-            } catch (MachinesManagementException e) {
-                logger.fatal("Queue consumer thread failed to find available machine to run task. Details: " + e.getMessage());
-                logger.fatal(e.getMessage());
-                ExecutionServer.notifyFatal(e);
             } catch (PersistenceException e) {
                 logger.fatal("Failed to update task in DB");
                 ExecutionServer.notifyFatal(e);

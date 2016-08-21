@@ -28,27 +28,28 @@ import java.nio.file.Paths;
 public class RequestHandler extends Thread {
 
     private static Logger logger = LogManager.getLogger(RequestHandler.class);
+    private static Configuration configuration;
+
     private String baseDir; // The root directory where the files should be stored
     private String unitsDir; // The directory where the units should be stored, related to the base dir
     private String serverAddress; // Address of the program server
-    private String configPath; // The directory where the configuration files should be stored
     private RabbitData rabbitMessage;
-    private SSHConnectionProperties sshConnectionProperties;
 
     private String tmpInputFilesDir = "";
     private String tmpOutputFilesDir = "";
 
     private Task task;
 
-    public RequestHandler(String threadName, RabbitData rabbitMessage, String serverAddress, String baseDir, String unitsDir, String configPath) {
+    public RequestHandler(String threadName, RabbitData rabbitMessage, String serverAddress,
+                          String baseDir, String unitsDir, Configuration config) {
         super(threadName);
         this.baseDir = baseDir;
         this.unitsDir = unitsDir;
         this.serverAddress = serverAddress;
         this.rabbitMessage = rabbitMessage;
-        this.configPath = configPath;
+        configuration = config;
         if (logger.isDebugEnabled()) {
-            logger.debug("serverAddress = [" + serverAddress + "] baseDir = [" + baseDir + "] configPath = [" + configPath + "] " +
+            logger.debug("serverAddress = [" + serverAddress + "] baseDir = [" + baseDir + "] " +
                     "unitsDir = [" + unitsDir + "] message = [" + rabbitMessage.getMessage() + "]");
         }
     }
@@ -56,9 +57,7 @@ public class RequestHandler extends Thread {
     @Override
     public void run() {
         try {
-            Configuration configuration = Configuration.loadConfiguration(configPath);
             String machineWorkDir = configuration.getUnitsMainProperties().getMachineWorkspaceDir();
-            sshConnectionProperties = configuration.getSshConnectionProperties();
             this.task = rabbitMessage.getTask();
             logger.info("[Study = " + task.getContext().getStudy() + "] Parsed request = [" + rabbitMessage.getMessage() + " " + task.getId() + "]");
             if (rabbitMessage.getMessage().equals(MachineConstants.BASE_UNIT_REQUEST)) {
@@ -145,7 +144,8 @@ public class RequestHandler extends Thread {
         handleStopInterrupt();
         SftpManager filesClient = null;
         try {
-            filesClient = new SftpManager(sshConnectionProperties, serverAddress, filesSourceDir, tmpInputFilesDir);
+            filesClient = new SftpManager(configuration.getSshConnectionProperties(), serverAddress,
+                    filesSourceDir, tmpInputFilesDir);
             filesClient.getFilesFromServer();
         } catch (NetworkException e) {
             logger.error("[Study = " + task.getContext().getStudy() + "] Failed receiving files from server " + e.getMessage(), e);
@@ -250,7 +250,8 @@ public class RequestHandler extends Thread {
         SftpManager filesUploader;
         try {
             handleStopInterrupt();
-            filesUploader = new SftpManager(sshConnectionProperties, serverAddress, task.getOutputPath(), tmpOutputFilesDir);
+            filesUploader = new SftpManager(configuration.getSshConnectionProperties(), serverAddress,
+                    task.getOutputPath(), tmpOutputFilesDir);
             handleStopInterrupt();
             filesUploader.uploadFilesToServer();
         } catch (NetworkException e) {

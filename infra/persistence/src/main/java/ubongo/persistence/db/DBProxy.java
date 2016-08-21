@@ -243,7 +243,7 @@ public class DBProxy {
         return analysisNames;
     }
 
-    public List<Machine> getAllMachines() throws DBProxyException {
+    public List<Machine> getAllMachines(boolean includeServer) throws DBProxyException {
         connect();
         List<Machine> machines = new ArrayList<>();
         String tableName = getTableName(DBConstants.MACHINES_TABLE_NAME);
@@ -258,6 +258,11 @@ public class DBProxy {
             }
         } catch (SQLException e) {
             throw new DBProxyException(errorMsg, e);
+        }
+        if (!includeServer) {
+            machines = machines.stream()
+                    .filter(m -> m.getId() != DBConstants.SERVER_ID)
+                    .collect(Collectors.toList());
         }
         return machines;
     }

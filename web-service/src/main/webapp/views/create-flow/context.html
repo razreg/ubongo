@@ -63,7 +63,7 @@
         <table width="100%">
             <tr>
                 <td>
-                    <label class="control-label" for="runInput">Run / Anatomy</label> <label style="color:red;">*</label>
+                    <label class="control-label" for="runInput">Run / Anatomy</label>
                 </td>
                 <td align="right" valign="middle" width="25%">
                     <input type="radio" name="runRadio" value="all" ng-model="flow.allRuns"
@@ -78,7 +78,7 @@
             </tr>
             <tr>
                 <td colspan="3"><input type="text" class="form-control" id="runInput" name="runInput"
-                                       ng-model="runInput" ng-disabled="flow.allRuns == 'all'" ng-required="flow.allRuns == 'custom'"
+                                       ng-model="runInput" ng-disabled="flow.allRuns == 'all'"
                                        placeholder="Insert name of run, matching run directory, or write anatomy" maxlength="100"></td>
             </tr>
         </table>

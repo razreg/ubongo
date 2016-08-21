@@ -2,13 +2,14 @@
 <Configuration>
 
     <Properties>
+        <Property name="machineId">1</Property>
         <Property name="moduleName">machine</Property>
         <Property name="baseDir">${sys:log_directory:-logs}</Property>
     </Properties>
 
     <Appenders>
-        <RollingFile name="file-log" fileName="${baseDir}/${moduleName}.log"
-                     filePattern="${baseDir}/${moduleName}.%d{yyyy-MM-dd}.%i.log"
+        <RollingFile name="file-log" fileName="${baseDir}/${moduleName}-${machineId}.log"
+                     filePattern="${baseDir}/${moduleName}-${machineId}.%d{yyyy-MM-dd}.%i.log"
                      immediateFlush="true" append="true">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level [%t] %c{1} - %msg%n"/>
             <Policies>
