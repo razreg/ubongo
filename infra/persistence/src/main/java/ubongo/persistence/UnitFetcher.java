@@ -10,7 +10,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,14 +62,16 @@ public class UnitFetcher {
         return unit;
     }
 
-    public List<Unit> getAllUnits() throws UnitFetcherException {
+    public Map<Integer,Unit> getAllUnits() throws UnitFetcherException {
         File unitsDir = new File(unitSettingsDirPath);
         File[] files = unitsDir.listFiles((dir, name) -> UNIT_FILENAME_PATTERN.matcher(name).matches());
-        List<Unit> units = new ArrayList<>(files.length);
+        Map<Integer,Unit> units = new HashMap<>();
+        Unit unit;
         for (File file: files) {
             Matcher matcher = DIGITS_PATTERN.matcher(file.getName());
             if (matcher.find()) {
-                units.add(getUnit(file, Integer.parseInt(matcher.group())));
+                unit = getUnit(file, Integer.parseInt(matcher.group()));
+                units.put(unit.getId(),unit);
             }
         }
         return units;

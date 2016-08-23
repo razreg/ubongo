@@ -9,6 +9,7 @@ import ubongo.persistence.PersistenceException;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 public interface ServiceProvider {
 
@@ -67,10 +68,10 @@ public interface ServiceProvider {
 
     /**
      * Retrieves all the execution units in the system.
-     * @return list of units (may be empty if no units re found).
+     * @return map of units (may be empty if no units re found), where the key is the unit Id.
      * @throws PersistenceException if one or more units is malformed and cannot be read.
      */
-    List<Unit> getAllUnits() throws PersistenceException;
+    Map<Integer,Unit> getAllUnits() throws PersistenceException;
 
     void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException;
 

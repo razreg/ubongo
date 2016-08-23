@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<unit id="3"> <!-- supply a unique integer id, which will also appear in the name of the file (we expect a number between 0 and 999 but this can be changed) -->
+    <name>unit3</name>
+    <description>Re-reference the data to the reference electrodes</description>
+    <input-files>/specific/netapp5/hezi/shellybar/EEGPiplineSystem/Experiments/{study}/{subject}/DataAfterFiltering/</input-files>
+    <output-dir>/specific/netapp5/hezi/shellybar/EEGPiplineSystem/Experiments/{study}/{subject}/DataAfterRereference/</output-dir>
+    <parameters> <!-- parameters that go in the script - anything other than the input/output files -->
+		<string-parameter>
+            <name>ref_elecs</name>
+            <display>Reference electrodes</display>
+            <default>[69 70]</default>
+        </string-parameter>
+    </parameters>
+</unit>

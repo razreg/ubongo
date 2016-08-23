@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 public class UnitAdder {
-    final static int BASE_PARAMS = 3;
+    final static int BASE_PARAMS = 3; // Task_Id, Input_dir, Output_dir.
 
     public static void generateBashFile(Unit unit, String unitBashPath) throws Exception {
         PrintWriter writer = new PrintWriter(unitBashPath, "UTF-8");
@@ -64,15 +64,13 @@ public class UnitAdder {
 
     private static void addMatlabParams(Unit unit, PrintWriter writer) {
         List<UnitParameter> unitParams = unit.getParameters();
-        int i = 1;
         for (UnitParameter param : unitParams){
             writer.println("\t" + "echo \"" + param.getName().toLowerCase() + "='${" + param.getName().toUpperCase() + "}';\" >> ${filename}");
-            i++;
         }
     }
 
     private static void addMatlabDependencies(PrintWriter writer) throws Exception{
-        String configPath = System.getProperty(MachineConstants.CONFIG_PATH);
+        String configPath = System.getProperty(MachineConstants.ARG_CONFIG_PATH);
         Configuration configuration = Configuration.loadConfiguration(configPath);
         List<String> dependencies = configuration.getUnitsMainProperties().getMatlabDepenencies();
         for (String dependency : dependencies)

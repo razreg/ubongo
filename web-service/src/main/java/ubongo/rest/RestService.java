@@ -22,7 +22,7 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.UnmarshalException;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 @Path("/api")
@@ -421,7 +421,7 @@ public final class RestService {
         ObjectMapper mapper = new ObjectMapper();
         String response;
         try {
-            List<Unit> units = serviceProvider.getAllUnits();
+            List<Unit> units = new ArrayList<>(serviceProvider.getAllUnits().values());
             if (units == null) {
                 throw new UbongoHttpException(500, "Failed to retrieve units.");
             }

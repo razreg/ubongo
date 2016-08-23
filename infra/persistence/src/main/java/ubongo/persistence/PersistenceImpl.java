@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class PersistenceImpl implements Persistence {
@@ -224,7 +225,7 @@ public class PersistenceImpl implements Persistence {
     }
 
     @Override
-    public List<Unit> getAllUnits() throws PersistenceException {
+    public Map<Integer,Unit> getAllUnits() throws PersistenceException {
         return new DBMethodInvoker<>(sqlExceptionHandler, unitFetcher::getAllUnits).invoke();
     }
 

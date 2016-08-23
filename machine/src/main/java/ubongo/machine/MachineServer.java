@@ -60,7 +60,7 @@ public class MachineServer {
         final String TASKS_QUEUE_NAME = SystemConstants.UBONGO_RABBIT_TASKS_QUEUE;
         final String KILL_TASKS_QUEUE_NAME = SystemConstants.UBONGO_RABBIT_KILL_TASKS_QUEUE;
         try {
-            System.out.println(" [*] Waiting for new tasks. To exit press CTRL+C");
+            logger.info("[!] Waiting for new tasks.");
             tasksListener(TASKS_QUEUE_NAME, '+');
             tasksListener(KILL_TASKS_QUEUE_NAME, 'x');
         } catch (Exception e){
@@ -70,7 +70,7 @@ public class MachineServer {
 
     private static boolean initSystemPropertyObjects() {
         unitsDir = System.getProperty(MachineConstants.ARG_UNITS);
-        String configPath = System.getProperty(MachineConstants.CONFIG_PATH);
+        String configPath = System.getProperty(MachineConstants.ARG_CONFIG_PATH);
         queriesPath = System.getProperty(MachineConstants.ARG_QUERIES_PATH);
         boolean ret = true;
         if (unitsDir == null) {
@@ -83,7 +83,7 @@ public class MachineServer {
             ret = false;
         } else if (configPath == null) {
             logger.error("Please supply configuration path as run parameter: -D" +
-                    MachineConstants.CONFIG_PATH + "=<path>");
+                    MachineConstants.ARG_CONFIG_PATH + "=<path>");
             ret = false;
         }
         if (!ret) return false;
@@ -110,17 +110,19 @@ public class MachineServer {
                     RabbitData message = RabbitData.fromBytes(body);
                     logger.info(" ["+actionSign+"] Received '" + message.getMessage() + "'");
                     String baseDir = System.getProperty(MachineConstants.ARG_DIR);
+                    String unitsDir = System.getProperty(MachineConstants.ARG_UNITS);
                     serverAddress = System.getProperty(MachineConstants.ARG_SERVER);
-                    logger.info("Server address: [" + serverAddress + "], base directory path: [" + baseDir + "]");
+                    logger.info("Server address: [" + serverAddress + "], base directory path: [" + baseDir + "] , units directory path: [" + unitsDir + "]");
                     String threadName = getThreadName(message.getTask());
                     RequestHandler requestHandler =
                             new RequestHandler(threadName, message, serverAddress, baseDir, unitsDir, configuration);
                     if ((message.getMessage()).equals(MachineConstants.BASE_UNIT_REQUEST)) {
                         unitThreads.put(threadName, requestHandler);
                     }
-                    logger.debug("Starting RequestHandler thread...");
+                    logger.info("Starting RequestHandler thread");
                     requestHandler.start();
                 } catch (Exception e){
+                    logger.error("Failed receiving rabbitMq message. ", e);
                     throw new IOException(e);
                 }
             }
