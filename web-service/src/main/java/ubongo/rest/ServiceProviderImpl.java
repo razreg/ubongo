@@ -6,7 +6,7 @@ import ubongo.common.datatypes.*;
 import ubongo.common.datatypes.unit.Unit;
 import ubongo.persistence.Configuration;
 import ubongo.persistence.Persistence;
-import ubongo.persistence.PersistenceException;
+import ubongo.persistence.exceptions.PersistenceException;
 import ubongo.persistence.PersistenceImpl;
 
 import java.io.IOException;
@@ -32,12 +32,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     @Override
-    public void start() {
-        try {
-            persistence.start();
-        } catch (PersistenceException e) {
-            System.out.println("Failed to start system persistence. Details:\n" + e.getMessage());
-        }
+    public void start() throws PersistenceException {
+        persistence.start();
     }
 
     @Override
@@ -136,7 +132,6 @@ public class ServiceProviderImpl implements ServiceProvider {
         persistence.saveRequest(request);
     }
 
-    // TODO change to ExecutionRequest and handle the request in the server!!
     @Override
     public void generateBashFileForNewUnit(int unitId) throws PersistenceException {
         Map<Integer,Unit> allUnits = getAllUnits();

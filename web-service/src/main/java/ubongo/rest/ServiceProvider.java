@@ -5,7 +5,7 @@ import ubongo.common.datatypes.FlowData;
 import ubongo.common.datatypes.Machine;
 import ubongo.common.datatypes.Task;
 import ubongo.common.datatypes.unit.Unit;
-import ubongo.persistence.PersistenceException;
+import ubongo.persistence.exceptions.PersistenceException;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -81,7 +81,7 @@ public interface ServiceProvider {
 
     List<ExecutionRequest> getAllRequests(int limit) throws PersistenceException;
 
-    void start();
+    void start() throws PersistenceException;
 
     void stop();
 

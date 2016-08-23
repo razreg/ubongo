@@ -9,6 +9,7 @@ import ubongo.persistence.db.DBConnectionProperties;
 import ubongo.persistence.db.DBProxy;
 import ubongo.persistence.db.SQLExceptionHandler;
 import ubongo.persistence.exceptions.DBProxyException;
+import ubongo.persistence.exceptions.PersistenceException;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -17,6 +18,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+/**
+ * This class implements the Persistence API. All methods in this implementations utilize a mechanism to try and handle
+ * runtime problems instead of immediately failing. In some cases, writing to a Database or reading from it may cause
+ * transient exceptions that can be easily solved with retrying or restarting the connection. To do this, we use two
+ * schemes: in case there are no arguments to the method, we use {@link DBMethodInvoker} to invoke the method responsibly;
+ * and if the method does have arguments, we run its content within a loop for retries, if they might help.
+ */
 public class PersistenceImpl implements Persistence {
 
     /**
@@ -30,11 +38,6 @@ public class PersistenceImpl implements Persistence {
     private DBProxy dbProxy;
     private SQLExceptionHandler sqlExceptionHandler;
     private UnitFetcher unitFetcher;
-
-    public PersistenceImpl(String unitSettingsDirPath, DBConnectionProperties dbConnectionProperties,
-                           List<Machine> machines, String queriesPath, boolean debug) {
-        this(unitSettingsDirPath, dbConnectionProperties, null, machines, queriesPath, debug);
-    }
 
     public PersistenceImpl(String unitSettingsDirPath, DBConnectionProperties dbConnectionProperties,
                            SSHConnectionProperties sshConnectionProperties, List<Machine> machines,

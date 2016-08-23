@@ -10,4 +10,12 @@ public class Utils {
         return sb.toString();
     }
 
+    public static String concatStrings(Object ... objects) {
+        StringBuilder sb = new StringBuilder();
+        for (Object object : objects) {
+            sb.append(object.toString());
+        }
+        return sb.toString();
+    }
+
 }

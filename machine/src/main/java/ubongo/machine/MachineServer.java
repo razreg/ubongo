@@ -8,6 +8,7 @@ import ubongo.common.constants.SystemConstants;
 import ubongo.common.datatypes.RabbitData;
 import ubongo.common.datatypes.Task;
 import ubongo.persistence.*;
+import ubongo.persistence.exceptions.PersistenceException;
 
 import javax.xml.bind.UnmarshalException;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class MachineServer {
 
     public void start() throws PersistenceException {
         Persistence persistence = new PersistenceImpl(unitsDir, configuration.getDbConnectionProperties(),
-                configuration.getSshConnectionProperties(), null, queriesPath, true); // TODO change last argument to some system property (debug)
+                configuration.getSshConnectionProperties(), null, queriesPath, configuration.getDebug());
         persistence.start();
         initHeartbeat(persistence);
     }

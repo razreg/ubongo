@@ -806,7 +806,7 @@ public class DBProxy {
     private String getMachinesAsValueList(List<Machine> machines) {
         // (id, host, description, active, connected)
         return StringUtils.join(machines.stream()
-                .map(machine -> Utils.concatStrings("(", machine.getId()+"", ", '",
+                .map(machine -> Utils.concatStrings("(", machine.getId(), ", '",
                         machine.getHost(), "', '", machine.getDescription(),"', ",
                         (machine.isActive() ? "1" : "0"), ", ",
                         (machine.isConnected() ? "1" : "0"), ")"))

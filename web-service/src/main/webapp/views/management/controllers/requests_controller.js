@@ -17,7 +17,7 @@
       $scope.fetchRequests = function() {
         var limit = 19;
         $http.get('rest/api/requests?limit=' + (limit+1))
-          .success(function(data, status, headers, config) {
+          .success(function(data) {
             data = data.map(function(request) {
               var date = new Date(0);
               date.setUTCSeconds(request.lastUpdated / 1000);
@@ -33,7 +33,7 @@
               displayMsg(true, 'Showing only ' + (limit+1) + ' most recent requests', NEUTRAL_STYLE);
             }
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             displayMsg(true, 'Failed to load requests', BAD_STYLE);
           });
       };

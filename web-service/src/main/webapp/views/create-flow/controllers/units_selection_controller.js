@@ -8,7 +8,7 @@
       $scope.units = [];
       $scope.defaultUnitText = {value: 'Loading units...'};
       $http.get('rest/api/units')
-        .success(function(data, status, headers, config) {
+        .success(function(data) {
           $scope.units = data;
           if (data.length > 0) {
             $scope.defaultUnitText.value = 'Select unit';
@@ -16,7 +16,7 @@
             $scope.defaultUnitText.value = 'No units available';
           }
         })
-        .error(function(data, status, headers, config) {
+        .error(function() {
           $scope.defaultUnitText.value = 'Failed to load units';
         });
 
@@ -68,7 +68,7 @@
       };
 
       $scope.removeUnit = function() {
-        angular.forEach($scope.gridApi.selection.getSelectedRows(), function (data, index) {
+        angular.forEach($scope.gridApi.selection.getSelectedRows(), function (data) {
           $scope.gridApi.selection.unSelectRow(data);
           $scope.unitGridOptions.data.splice($scope.unitGridOptions.data.lastIndexOf(data), 1);
         });

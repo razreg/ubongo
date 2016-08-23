@@ -53,7 +53,7 @@
       $scope.taskGridOptions.onRegisterApi = function(gridApi) {
         //set gridApi on scope
         $scope.gridApi = gridApi;
-        gridApi.selection.on.rowSelectionChanged($scope, function(row) {
+        gridApi.selection.on.rowSelectionChanged($scope, function() {
           $scope.taskSelected = gridApi.selection.getSelectedRows();
           if ($scope.taskSelected.length > 0) {
             var details = $.grep($scope.currFlow.tasks, function(elem){
@@ -87,7 +87,7 @@
 
       function reloadFlows() {
         return $http.get('rest/api/flows')
-          .success(function(data, status, headers, config) {
+          .success(function(data) {
             $scope.flows = data;
             if ($scope.flows.length > 0) {
               $scope.defaultFlowText.value = 'Select flow';
@@ -96,7 +96,7 @@
             }
             return true;
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             $scope.defaultFlowText.value = 'Failed to load flows';
             return false;
           });
@@ -116,7 +116,7 @@
         displayMsg(false);
         $scope.taskSelected = [];
         $http.get('rest/api/flows/' + $scope.selectedOption + '/tasks')
-          .success(function(data, status, headers, config) {
+          .success(function(data) {
             if (data.length > 0) {
               $scope.currFlow = {
                 tasks: data,
@@ -139,7 +139,7 @@
               $scope.taskGridOptions.data = [];
             }
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             $scope.currFlow = {status: 'New'};
             displayMsg(true, 'Failed to load flow details', BAD_STYLE);
             $scope.taskGridOptions.data = [];
@@ -148,10 +148,10 @@
 
       $scope.cancelFlow = function() {
         $http.post('rest/api/flows/' + $scope.selectedOption + '?action=cancel')
-          .success(function(data, status, headers, config) {
+          .success(function() {
             displayMsg(true, 'A request to cancel flow was sent to the server', GOOD_STYLE);
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             displayMsg(true, 'Failed to cancel flow', BAD_STYLE);
           });
       };
@@ -173,30 +173,30 @@
 
       $scope.cancelTask = function() {
         $http.post(getApiTaskActionPath('cancel'))
-          .success(function(data, status, headers, config) {
+          .success(function() {
             displayMsg(true, 'A request to cancel task was sent to the server', GOOD_STYLE);
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             displayMsg(true, 'Failed to cancel task', BAD_STYLE);
           });
       };
 
       $scope.resumeTask = function() {
         $http.post(getApiTaskActionPath('resume'))
-          .success(function(data, status, headers, config) {
+          .success(function() {
             displayMsg(true, 'A request to resume task was sent to the server', GOOD_STYLE);
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             displayMsg(true, 'Failed to resume task', BAD_STYLE);
           });
       };
 
       $scope.killTask = function() {
         $http.post(getApiTaskActionPath('stop'))
-          .success(function(data, status, headers, config) {
+          .success(function() {
             displayMsg(true, 'A request to stop task was sent to the server', GOOD_STYLE);
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             displayMsg(true, 'Failed to stop task', BAD_STYLE);
           });
       };

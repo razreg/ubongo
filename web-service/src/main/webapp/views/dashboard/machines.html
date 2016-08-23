@@ -8,7 +8,7 @@
         <table width="100%">
             <tr>
                 <td width="200"><label class="control-label">Server's last heartbeat:</label></td>
-                <td colspan="2"><div ng-bind="server.lastHeartbeat" style="margin-bottom:5px;"></div></td>
+                <td colspan="2"><div ng-bind="server.lastHeartbeat" style="margin-bottom:5px;" ng-style="server.style"></div></td>
             </tr>
             <tr ng-if="currMachine.id >= 0">
                 <td><label class="control-label">Machine's last heartbeat:</label></td>

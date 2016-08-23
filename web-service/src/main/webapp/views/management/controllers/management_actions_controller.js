@@ -7,7 +7,7 @@
       $scope.units = [];
       $scope.disabledOptionText = {value: 'Loading units...'};
       $http.get('rest/api/units')
-        .success(function(data, status, headers, config) {
+        .success(function(data) {
           $scope.units = data;
           if (data.length > 0) {
             $scope.disabledOptionText.value = 'Select unit';
@@ -15,7 +15,7 @@
             $scope.disabledOptionText.value = 'No units available';
           }
         })
-        .error(function(data, status, headers, config) {
+        .error(function() {
           $scope.disabledOptionText.value = 'Failed to load units';
         });
 

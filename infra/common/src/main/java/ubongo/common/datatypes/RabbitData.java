@@ -19,28 +19,25 @@ public class RabbitData implements Serializable {
         return message;
     }
 
-    public byte[] getBytes() throws IOException{
-        byte[]bytes;
+    public byte[] getBytes() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(this);
         oos.flush();
         oos.reset();
-        bytes = baos.toByteArray();
+        byte[] bytes = baos.toByteArray();
         oos.close();
         baos.close();
 
         return bytes;
     }
 
-    public static RabbitData fromBytes(byte[] body) throws Exception{
-        RabbitData rabbitDataObj = null;
+    public static RabbitData fromBytes(byte[] body) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(body);
         ObjectInputStream ois = new ObjectInputStream(bis);
-        rabbitDataObj = (RabbitData) ois.readObject();
+        RabbitData rabbitDataObj = (RabbitData) ois.readObject();
         ois.close();
         bis.close();
-
         return rabbitDataObj;
     }
 }

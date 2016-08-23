@@ -9,15 +9,13 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The UnitFetcher class supplys a method to get a unit Object given its ID
+ * The UnitFetcher class supplies a method to get a unit Object given its ID
  */
 public class UnitFetcher {
 
@@ -33,13 +31,33 @@ public class UnitFetcher {
     /**
      * Get a Unit object with unit settings corresponding to those set
      * in the XML configuration file for the unit with unitId.
-     * @param unitId is a number required to locate the relevant XML file
+     * @param unitId is a number required to locate the relevant XML file.
      * @return Unit object with the data corresponding to unitId.
-     * @throws UnitFetcherException if unit with unitId does not exist
+     * @throws UnitFetcherException if unit with unitId does not exist or deserialization failed.
      */
     public Unit getUnit(int unitId) throws UnitFetcherException {
         File file = getUnitSettingsFile(unitId);
         return getUnit(file, unitId);
+    }
+
+    /**
+     * Fetches a map of unitIds as keys and Unit objects as values from all the XML files found in the units directory
+     * @return map of unitId-Unit key-value pairs corresponding to all units in the system.
+     * @throws UnitFetcherException if deserialization of one of the units failed.
+     */
+    public Map<Integer,Unit> getAllUnits() throws UnitFetcherException {
+        File unitsDir = new File(unitSettingsDirPath);
+        File[] files = unitsDir.listFiles((dir, name) -> UNIT_FILENAME_PATTERN.matcher(name).matches());
+        Map<Integer,Unit> units = new HashMap<>();
+        Unit unit;
+        for (File file: files) {
+            Matcher matcher = DIGITS_PATTERN.matcher(file.getName());
+            if (matcher.find()) {
+                unit = getUnit(file, Integer.parseInt(matcher.group()));
+                units.put(unit.getId(),unit);
+            }
+        }
+        return units;
     }
 
     private Unit getUnit(File file, int unitId) throws UnitFetcherException {
@@ -60,21 +78,6 @@ public class UnitFetcher {
                     ". Make sure that the unit exists and is configured correctly");
         }
         return unit;
-    }
-
-    public Map<Integer,Unit> getAllUnits() throws UnitFetcherException {
-        File unitsDir = new File(unitSettingsDirPath);
-        File[] files = unitsDir.listFiles((dir, name) -> UNIT_FILENAME_PATTERN.matcher(name).matches());
-        Map<Integer,Unit> units = new HashMap<>();
-        Unit unit;
-        for (File file: files) {
-            Matcher matcher = DIGITS_PATTERN.matcher(file.getName());
-            if (matcher.find()) {
-                unit = getUnit(file, Integer.parseInt(matcher.group()));
-                units.put(unit.getId(),unit);
-            }
-        }
-        return units;
     }
 
     private File getUnitSettingsFile(long unitId) {

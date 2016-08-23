@@ -7,13 +7,12 @@ import java.util.List;
 @XmlRootElement(name = "units")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UnitsMainProperties {
+
     @XmlElement
     private String machineWorkspaceDir;
 
     @XmlElementWrapper (name = "matlabDepenencies")
-    @XmlElements({
-            @XmlElement (name = "path", type = String.class)
-    })
+    @XmlElements({@XmlElement (name = "path", type = String.class)})
     private List<String> matlabDepenencies = new ArrayList<>();
 
     public String getMachineWorkspaceDir() {

@@ -2,6 +2,7 @@ package ubongo.persistence;
 
 import ubongo.common.datatypes.*;
 import ubongo.common.datatypes.unit.Unit;
+import ubongo.persistence.exceptions.PersistenceException;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -251,6 +252,13 @@ public interface Persistence {
      */
     void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException;
 
-    // TODO document
+    /**
+     * Some tasks are saved to the DB with context variables in their path and wildcard context values (i.e., ".*").
+     * In these cases this method will delete the original task from the DB and replace it with the new ones -
+     * using the same flow Id.
+     * @param originalTask to be used for flowId and removed.
+     * @param replacements are the new tasks to be inserted to the DB.
+     * @throws PersistenceException in case the insertion or deletion from the DB has failed.
+     */
     void insertContextToTask(Task originalTask, List<Task> replacements) throws PersistenceException;
 }

@@ -40,24 +40,24 @@
             studyName: study,
             tasks: flowTasks
           })
-          .success(function(data, status, headers, config) {
+          .success(function(data) {
             if (data == null || data === undefined) {
               showSubmitMsg('Something went wrong - please check if the flow exists in the Dashboard tab', BAD_STYLE);
             } else {
               executeFlow(data.flowId);
             }
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             showSubmitMsg('Failed to create flow', BAD_STYLE);
           });
       };
 
       function executeFlow(flowId) {
         $http.post('rest/api/flows/' + flowId + '?action=run')
-          .success(function(data, status, headers, config) {
+          .success(function() {
             showSubmitMsg('Flow sent for execution', GOOD_STYLE);
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             showSubmitMsg('Flow created but not executed', BAD_STYLE);
           });
       }
@@ -80,7 +80,7 @@
         $scope.contextScope.analysis.name = selected;
         $scope.contextScope.analysis.submitted = selected;
         $http.get('rest/api/analyses/' + selected)
-          .success(function(data, status, headers, config) {
+          .success(function(data) {
             if (data == null || data === undefined || data.length == 0) {
               showSubmitMsg('Failed to load analysis', BAD_STYLE);
             } else {
@@ -94,7 +94,7 @@
               });
             }
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             showSubmitMsg('Failed to load analysis', BAD_STYLE);
           });
       };
@@ -113,10 +113,10 @@
             analysisName: $scope.contextScope.analysis.name,
             units: $scope.unitsScope.unitGridOptions.data
           })
-          .success(function(data, status, headers, config) {
+          .success(function() {
             showSubmitMsg('Analysis saved successfully', GOOD_STYLE);
           })
-          .error(function(data, status, headers, config) {
+          .error(function() {
             showSubmitMsg('Failed to save the analysis to the DB', BAD_STYLE);
           });
       };

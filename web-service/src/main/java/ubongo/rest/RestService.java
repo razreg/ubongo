@@ -12,7 +12,7 @@ import ubongo.common.datatypes.Machine;
 import ubongo.common.datatypes.Task;
 import ubongo.common.datatypes.unit.Unit;
 import ubongo.persistence.Configuration;
-import ubongo.persistence.PersistenceException;
+import ubongo.persistence.exceptions.PersistenceException;
 
 import javax.servlet.ServletContext;
 import javax.validation.constraints.NotNull;
@@ -74,6 +74,7 @@ public final class RestService {
                 throw new UbongoHttpException(500, FAILURE_MSG);
             }
             serviceProvider = new ServiceProviderImpl(configuration, unitsPath, queriesPath, configuration.getDebug());
+            serviceProvider.start();
         } catch (UbongoHttpException e) {
             serviceProvider = null;
             throw e;

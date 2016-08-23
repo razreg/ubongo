@@ -22,7 +22,7 @@
       $scope.flowSourceAnalysis = function() {
         $scope.flow.defaultAnalysisText = 'Loading analysis names...';
         $http.get('rest/api/analyses?names=true')
-          .success(function (data, status, headers, config) {
+          .success(function (data) {
             if (Array.isArray(data)) {
               $scope.flow.analysisNames = data;
               if (data.length > 0) {
@@ -34,7 +34,7 @@
               $scope.flow.defaultAnalysisText = FAILED_LOADING_ANALYSIS_NAMES;
             }
           })
-          .error(function (data, status, headers, config) {
+          .error(function () {
             $scope.flow.defaultAnalysisText = FAILED_LOADING_ANALYSIS_NAMES;
           });
       };

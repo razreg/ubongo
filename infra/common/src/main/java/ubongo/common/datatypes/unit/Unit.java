@@ -40,10 +40,7 @@ public class Unit implements Serializable, Cloneable {
     private String outputDir;
 
     @XmlElementWrapper (name = "parameters")
-    @XmlElements({
-            @XmlElement (name = "string-parameter", type = StringUnitParameter.class),
-            @XmlElement (name = "file-parameter", type = FileUnitParameter.class)
-    })
+    @XmlElements({@XmlElement (name = "parameter", type = UnitParameter.class)})
     private List<UnitParameter> parameters = new ArrayList<>();
 
     public Unit(int id) {

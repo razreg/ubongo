@@ -16,7 +16,6 @@ public enum ExecutionProxy {
     }
 
     private static Logger logger = LogManager.getLogger(ExecutionProxy.class);
-    private String inputDirPath;
     private QueueManager queueManager;
 
     /**
@@ -35,7 +34,8 @@ public enum ExecutionProxy {
     }
 
     private void sendRequestToMachine(Task task, String queue, String request) {
-        logger.info("Sending request to the machine. Queue = [" + queue+ "] RequestTask = [ "+ request+ "] id = [" + task.getId() + "]");
+        logger.info("Sending request to the machine. Queue=[" + queue + "] RequestTask=["
+                + request + "] taskId=[" + task.getId() + "]");
         try {
             ConnectionFactory factory = new ConnectionFactory();
             factory.setHost(task.getMachine().getDescription());
@@ -45,12 +45,13 @@ public enum ExecutionProxy {
             RabbitData message = new RabbitData(task, request);
             channel.basicPublish("", queue, null, message.getBytes());
             if (logger.isDebugEnabled()) {
-                logger.debug(" [x] Sent '" + message.getMessage() + "'");
+                logger.debug("Sent '" + message.getMessage() + "'");
             }
             channel.close();
             connection.close();
         } catch (Exception e){
-            logger.error("Failed sending task to machine. Task id = [" + task.getId() + "] Machine = [" + task.getMachine().getHost() + "] error: " + e.getMessage());
+            logger.error("Failed sending task to machine. TaskId=[" + task.getId() +"] Machine=["
+                    + task.getMachine().getHost() + "] error: " + e.getMessage());
             task.setStatus(TaskStatus.FAILED);
             queueManager.updateTaskAfterExecution(task);
         }

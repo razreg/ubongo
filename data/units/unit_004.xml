@@ -6,11 +6,11 @@
     <input-files>/specific/netapp5/hezi/shellybar/EEGPiplineSystem/Experiments/{study}/{subject}/DataAfterFiltering/</input-files>
     <output-dir>/specific/netapp5/hezi/shellybar/EEGPiplineSystem/Experiments/{study}/{subject}/DataAfterRereference/</output-dir>
     <parameters> <!-- parameters that go in the script - anything other than the input/output files -->		
-		<string-parameter>
+		<parameter>
             <name>ref_elecs</name>
             <display>Reference electrodes</display>
             <default>[69 70]</default>
-        </string-parameter>
+        </parameter>
 
     </parameters>
 </unit>

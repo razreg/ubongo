@@ -10,7 +10,7 @@ import ubongo.common.datatypes.RabbitData;
 import ubongo.common.datatypes.Task;
 import ubongo.persistence.Configuration;
 import ubongo.persistence.Persistence;
-import ubongo.persistence.PersistenceException;
+import ubongo.persistence.exceptions.PersistenceException;
 import ubongo.persistence.PersistenceImpl;
 
 import javax.xml.bind.UnmarshalException;
@@ -26,6 +26,7 @@ import java.util.concurrent.TimeoutException;
  *  -Dconfig - path to the ubongo-config.xml file (e.g., /some/path/config/ubongo-config.xml)
  *  -Dunits_path - path to the units directory (e.g., /some/path/units)
  *  -Dqueries - path to the queries.properties file (e.g., /some/path/db/queries.properties)
+ *  -Dlog_directory - path to log directory (e.g., /some/path/to/log/dir) - used by log4j configuration
  */
 public class ExecutionServer {
 
@@ -78,10 +79,9 @@ public class ExecutionServer {
 
     private static ExecutionServer initServer(String configPath, String unitsDirPath, String queriesPath) throws UnmarshalException {
         Configuration configuration = Configuration.loadConfiguration(configPath);
-        boolean debug = configuration.getDebug();
         List<Machine> machines = configuration.getMachines();
         Persistence persistence = new PersistenceImpl(unitsDirPath, configuration.getDbConnectionProperties(),
-                configuration.getSshConnectionProperties(), machines, queriesPath, debug);
+                configuration.getSshConnectionProperties(), machines, queriesPath, configuration.getDebug());
         return new ExecutionServer(persistence, machines);
     }
 
@@ -254,8 +254,8 @@ public class ExecutionServer {
     }
 
     /**
-     * A call to this function notifies the Server that a fatal error has occurred.
-     * This in turn causes an update to the DB so the server status will be reflected to the UI.
+     * A call to this function notifies the Server that a fatal error has occurred and then it tries to take some
+     * actions to repair the bad situation that might have been caused.
      * @param e throwable that caused the fatal error.
      */
     protected static void notifyFatal(Throwable e) {
@@ -292,10 +292,5 @@ public class ExecutionServer {
 
     private static void notifyQueueAfterCancel(Task task) {
         INSTANCE.queueManager.cancelCompleted(task);
-    }
-
-    // used for testing
-    public QueueManager getQueueManager() {
-        return queueManager;
     }
 }

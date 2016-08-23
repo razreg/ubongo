@@ -1,4 +1,4 @@
-package ubongo.persistence;
+package ubongo.persistence.exceptions;
 
 public class PersistenceException extends Exception {
 

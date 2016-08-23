@@ -3,6 +3,7 @@ package ubongo.persistence;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ubongo.common.datatypes.Machine;
+import ubongo.persistence.exceptions.PersistenceException;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -27,18 +28,8 @@ public class HeartbeatSender implements Runnable {
         }
         this.persistence = persistence;
         this.machine = new Machine();
-        List<Machine> machines = persistence.getAllMachines(false);
-        boolean idSet = false;
-        for (Machine m : machines) {
-            if (host.equals(m.getHost())) {
-                machine.setId(m.getId());
-                idSet = true;
-                break;
-            }
-        }
-        if (!idSet) {
-            throw new PersistenceException("Machine host address cannot be resolved to any known machine");
-        }
+        machine.setHost(host);
+        machine.setId(-1);
         machine.setConnected(true);
     }
 
@@ -46,10 +37,33 @@ public class HeartbeatSender implements Runnable {
     public void run() {
         machine.setLastHeartbeat(new Timestamp(new Date().getTime()));
         try {
-            persistence.updateMachine(machine); // updates the heartbeat in the DB
+            boolean idSet = true;
+            if (machine.getId() < 0) {
+                idSet = resolveHost();
+            }
+            if (idSet) {
+                persistence.updateMachine(machine); // updates the heartbeat in the DB
+            }
         } catch (PersistenceException e) {
             logger.error("Failed to store heartbeat in DB for "
                     + machine.getHost() + " (ID = " + machine.getId() + ")", e);
         }
+    }
+
+    private boolean resolveHost() throws PersistenceException {
+        boolean idSet = false;
+        List<Machine> machines = persistence.getAllMachines(false);
+        for (Machine m : machines) {
+            if (machine.getHost().equals(m.getHost())) {
+                machine.setId(m.getId());
+                idSet = true;
+                break;
+            }
+        }
+        if (!idSet) {
+            logger.warn("Machine host address [" + machine.getHost()
+                    + "] cannot be resolved to any known machine");
+        }
+        return idSet;
     }
 }

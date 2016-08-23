@@ -6,7 +6,7 @@ import ubongo.common.datatypes.Machine;
 import ubongo.common.datatypes.Task;
 import ubongo.common.datatypes.TaskStatus;
 import ubongo.persistence.Persistence;
-import ubongo.persistence.PersistenceException;
+import ubongo.persistence.exceptions.PersistenceException;
 import ubongo.server.exceptions.MachinesManagementException;
 
 import java.util.*;
@@ -164,7 +164,7 @@ public class QueueManager {
         for (int i = 0; i < NUM_CONSUMER_THREADS; i++)
             consumers.execute(new Consumer(queue, persistence));
         producer = Executors.newSingleThreadExecutor();
-        // TODO delay the producer from beginning so that it won't handle new tasks before the server is clean
+        // TODO delay the producer from beginning so that it won't handle new tasks before the server is clean?
         producer.execute(new Producer(queue, persistence));
     }
 
@@ -499,7 +499,16 @@ public class QueueManager {
             }
         }
 
-        // TODO document - return true iff the task can be executed as is
+        /**
+         * Some tasks in the DB might have wildcard context variables (i.e., ".*") and therefore this method replaces
+         * the given task with the list of tasks corresponding to the different context combinations, if there are
+         * more than one.
+         * @param task to refactor (insert context values instead of .*)
+         * @return true iff the task can be executed as is and no context wildcards were found.
+         * @throws Exception in case of IOException or related exceptions. Another type of exception that may be
+         * thrown is of course a PersistenceException in case the deletion and insertions to the database failed
+         * ({@link Persistence#insertContextToTask(Task, List)}).
+         */
         private boolean insertContextToTask(Task task) throws Exception {
             List<Task> tasks = Task.createTasks(task.getUnit(), task.getContext(), task.getSerialNumber());
             if (tasks.size() == 1 && task.getInputPath().equals(tasks.get(0).getInputPath()) &&

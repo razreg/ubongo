@@ -11,7 +11,6 @@ import java.io.Serializable;
  * For instance, if a unit requires a string, we want to have an identifying name for the parameter,
  * a display name to show in the UI, and a value received from the user.
  * This may also include other information such as whether this parameter is required, etc.
- * This class is extended by several specific parameter classes for the different parameters types.
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
