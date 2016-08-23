@@ -15,6 +15,6 @@ public class MachineConstants {
     public static final String ARG_SERVER = "server";
     public static final String ARG_DIR = "base_dir";
     public static final String ARG_UNITS = "units_dir";
-    public static final String CONFIG_PATH = "config";
     public static final String ARG_QUERIES_PATH = "queries";
+    public static final String ARG_CONFIG_PATH = "config";
 }

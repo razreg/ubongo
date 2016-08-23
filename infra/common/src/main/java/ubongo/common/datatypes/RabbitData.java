@@ -1,6 +1,5 @@
 package ubongo.common.datatypes;
 
-
 import java.io.*;
 
 public class RabbitData implements Serializable {
@@ -9,10 +8,6 @@ public class RabbitData implements Serializable {
 
     public RabbitData(Task task, String message) {
         this.task = task;
-        this.message = message;
-    }
-
-    public RabbitData(String message) {
         this.message = message;
     }
 

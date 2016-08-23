@@ -37,8 +37,8 @@
     <units>
         <machineWorkspaceDir>machineWorkspace</machineWorkspaceDir>
         <matlabDepenencies>
-            <path>addpath(genpath('/specific/netapp5/hezi/shellybar/bash/eeglab13_0_0b/eeglab13_0_0b'))</path>
-            <path>rmpath('/specific/netapp5/hezi/shellybar/bash/eeglab13_0_0b/eeglab13_0_0b/functions/octavefunc/signal')</path>
+            <path>addpath(genpath('/specific/netapp5/hezi/shellybar/units/eeglab13_0_0b/eeglab13_0_0b'))</path>
+            <path>rmpath('/specific/netapp5/hezi/shellybar/units/eeglab13_0_0b/eeglab13_0_0b/functions/octavefunc/signal')</path>
         </matlabDepenencies>
     </units>
 

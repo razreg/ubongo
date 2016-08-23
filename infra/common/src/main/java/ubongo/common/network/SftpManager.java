@@ -32,7 +32,7 @@ public class SftpManager {
         this.password = sshProperties.getPassword();
         this.sftpUri = "sftp://" + user + ":" + password +  "@" + machine + remoteDir + File.separator;
 
-        logger.info("SftpManager was initiated. Machine=" + this.machine+" remoteDir= "+this.remoteDir+ " localDir = " +this.localDir);
+        logger.info("SftpManager was initiated. [Machine=" + this.machine + "] [remoteDir = " + this.remoteDir + "] [localDir = " + this.localDir + "]");
     }
 
     /**
@@ -40,27 +40,27 @@ public class SftpManager {
      * Used for receiving files from the main files server to the machines.
      */
     public void getFilesFromServer() throws Throwable {
-        Optional<String> fileRegex = getFileRegexFromInputDirRegex();
-        List<String> localDirs = new ArrayList<>();
+        Optional<String> targetFileNamesRegex = getFileRegexFromInputDirRegex();
+        List<String> targetDirectoriesMatchingToRegexInPath = new ArrayList<>();
         handleStopInterrupt();
         try {
-            String remoteDirPath = remoteDir;
-            if (!remoteDir.endsWith(File.separator)){
-                remoteDirPath = remoteDir.substring(0, remoteDir.lastIndexOf(File.separator));
+            String remoteDirMainPath = remoteDir;
+            if (!remoteDir.endsWith(File.separator)){ // remoteDir path ends with regex
+                remoteDirMainPath = remoteDir.substring(0, remoteDir.lastIndexOf(File.separator)); // get path until regex
             }
-            logger.debug("getting directories for regex " + remoteDirPath);
+            logger.info("Getting sub-directories for " + remoteDirMainPath);
             handleStopInterrupt();
-            getDirectoriesFromRegex(localDirs, remoteDirPath);
+            getTargetDirectoriesMatchingToRegex(targetDirectoriesMatchingToRegexInPath, remoteDirMainPath);
         } catch (FileSystemException e) {
             handleIfItCausedByInterrupt(e);
             String error = "Failed getting input files directories from regex";
             logger.error(error, e);
             throw new NetworkException(error);
         }
-        for (String currRemotelDir : localDirs) {
+        for (String currRemotelDir : targetDirectoriesMatchingToRegexInPath) {
             logger.info("Downloading files from : " + currRemotelDir);
             handleStopInterrupt();
-            getFilesFromServerByDirectory(currRemotelDir, fileRegex);
+            getFilesFromServerByDirectory(currRemotelDir, targetFileNamesRegex);
         }
     }
 
@@ -72,16 +72,16 @@ public class SftpManager {
         return Optional.of(dirParts[dirParts.length -1]);
     }
 
-    private void getDirectoriesFromRegex(List<String> dirs, String currDir) throws FileSystemException, InterruptedException {
+    private void getTargetDirectoriesMatchingToRegex(List<String> dirs, String mainDir) throws FileSystemException, InterruptedException {
         handleStopInterrupt();
         boolean endWithReg = false;
-        logger.debug("getDirectoriesFromRegex currDir: " + currDir);
-        if (currDir.matches(".*?\\(.*?\\)$")) {
+        logger.info("[getTargetDirectoriesMatchingToRegex] Current main dir: " + mainDir);
+        if (mainDir.matches(".*?\\(.*?\\)$")) {
             endWithReg = true;
-            logger.debug("currDir: " + currDir + " ends With Reg");
+            logger.debug("Current main dir: [" + mainDir + "] ends with Regex");
 
         }
-        String dirParts[] = currDir.split(File.separator+"\\(.*?\\)"+File.separator);
+        String dirParts[] = mainDir.split(File.separator+"\\(.*?\\)"+File.separator);
         String prefixString = dirParts[0];
         if ((dirParts.length == 1) && (!endWithReg)){
             fsManager = VFS.getManager();
@@ -90,34 +90,34 @@ public class SftpManager {
             FileObject currDirObject = fsManager.resolveFile(dirToAddSftpUri, opts);
             File currDirFile = new File(currDirObject.getName().getPath());
             if ((currDirFile.list() != null) && (currDirFile.list().length > 0)) {
-                logger.debug("Current path is not empty: " + prefixString);
+                logger.info("Current path is not empty: " + prefixString + ". " +
+                        "Adding this directory to the list of target directories to download files from.");
                 dirs.add(prefixString);
             } else {
-                logger.debug("Current path is empty, dumping it: " + prefixString);
+                logger.info("Current path is empty. No files will be downloaded from this directory : " + prefixString);
             }
             return;
         }
-        String dirSuffix = "";
+        String dirPathRelativeToMainDir = "";
         for (int i = 1; i < dirParts.length; i++){
-            dirSuffix += dirParts[i] + File.separator;
+            dirPathRelativeToMainDir += dirParts[i] + File.separator;
         }
-        if (dirSuffix!="")
-            dirSuffix = dirSuffix.substring(0, dirSuffix.lastIndexOf(File.separator));
+        if (dirPathRelativeToMainDir!="")
+            dirPathRelativeToMainDir = dirPathRelativeToMainDir.substring(0, dirPathRelativeToMainDir.lastIndexOf(File.separator));
 
-        logger.debug("currDir: " + currDir);
-        logger.debug("dirSuffix: " + dirSuffix);
+        logger.info("Current sub directory, relative to main current directory: " + dirPathRelativeToMainDir);
 
         String currRegex = "";
-        if (dirSuffix == ""){ // end with regex
-            prefixString = currDir.substring(0, currDir.indexOf("(") - 1);
-            currRegex = currDir.substring(currDir.indexOf("("), currDir.length());
+        if (dirPathRelativeToMainDir == ""){ // end with regex
+            prefixString = mainDir.substring(0, mainDir.indexOf("(") - 1);
+            currRegex = mainDir.substring(mainDir.indexOf("("), mainDir.length());
         } else {
-            currRegex = currDir.substring(dirParts[0].length() + 1, currDir.lastIndexOf(dirSuffix));
+            currRegex = mainDir.substring(dirParts[0].length() + 1, mainDir.lastIndexOf(dirPathRelativeToMainDir));
         }
         if (currRegex.endsWith(File.separator))
             currRegex = currRegex.substring(0, currRegex.lastIndexOf(File.separator));
-        logger.debug("currRegex: " + currRegex);
-        String suffixString = currDir.substring(currDir.lastIndexOf(dirSuffix));
+        logger.info("Current regex: " + currRegex);
+        String suffixString = mainDir.substring(mainDir.lastIndexOf(dirPathRelativeToMainDir));
         String currSftpUri = "sftp://" + user + ":" + password +  "@" + machine + prefixString + File.separator;
         fsManager = VFS.getManager();
         handleStopInterrupt();
@@ -132,7 +132,7 @@ public class SftpManager {
         });
         if (directories != null) {
             for (String currSubDir : directories) {
-                logger.debug("currSubDir: " + currSubDir);
+                logger.info("Sub directory: " + currSubDir);
                 handleStopInterrupt();
                 if (currSubDir.matches(currRegex)) {
                     if ((currSubDir.contains("%")||(currSubDir.contains(".")))) {
@@ -140,11 +140,9 @@ public class SftpManager {
                     }
                     String seperator = (suffixString == "") ? "" :  File.separator;
                     String currPath = prefixString + File.separator + currSubDir + seperator + suffixString;
-                    logger.debug("currPath: " + currPath);
+                    logger.debug("Sub path to get target directories from: " + currPath);
                     String currDirSftpUri = "sftp://" + user + ":" + password + "@" + machine + currPath + File.separator;
-                    FileObject currDirObject = fsManager.resolveFile(currDirSftpUri, opts);
-                    logger.debug("currDirObject: " + currDirObject.getName());
-                    getDirectoriesFromRegex(dirs, currPath);
+                    getTargetDirectoriesMatchingToRegex(dirs, currPath);
                 } else {
                     logger.debug("Directory " + currSubDir + " doesn't match pattern " + currRegex);
                 }
@@ -224,10 +222,10 @@ public class SftpManager {
 
     private void recursiveUploadDirectory(FileSystemOptions opts, File folder) throws InterruptedException, NetworkException, FileSystemException {
         File[] listOfToUploadFiles = folder.listFiles();
-        logger.debug("folder to upload = " + folder);
+        logger.info("Directory to upload : " + folder);
 
         for (File fileToUpload : listOfToUploadFiles) {
-            logger.debug("fileToUpload: " + fileToUpload);
+            logger.debug("File to upload: " + fileToUpload);
             handleStopInterrupt();
             if (!fileToUpload.exists()) {
                 logger.error("Error. Local file not found : " + fileToUpload.getAbsolutePath());

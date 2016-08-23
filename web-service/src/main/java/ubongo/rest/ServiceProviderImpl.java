@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 public class ServiceProviderImpl implements ServiceProvider {
 
@@ -136,7 +137,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     @Override
-    public List<Unit> getAllUnits() throws PersistenceException {
+    public Map<Integer,Unit> getAllUnits() throws PersistenceException {
         return persistence.getAllUnits();
     }
 
@@ -150,11 +151,11 @@ public class ServiceProviderImpl implements ServiceProvider {
     // TODO change to ExecutionRequest and handle the request in the server!!
     @Override
     public void generateBashFileForNewUnit(int unitId) throws PersistenceException {
-        List<Unit> allUnits = getAllUnits();
-        if (allUnits.size() < unitId) {
+        Map<Integer,Unit> allUnits = getAllUnits();
+        if (!allUnits.containsValue(unitId)) {
             throw new PersistenceException("Configuration file was not found for unit " + unitId);
         }
-        Unit unit = allUnits.get(unitId - 1); // TODO don't get according to order - get by ID!
+        Unit unit = allUnits.get(unitId);
         String unitBashPath = Paths.get(unitsDirPath, Unit.getUnitBashFileName(unit.getId())).toString();
         try {
             UnitAdder.generateBashFile(unit, unitBashPath);
@@ -164,6 +165,7 @@ public class ServiceProviderImpl implements ServiceProvider {
             } catch (IOException e1) {
                 // ignore
             }
+            logger.error("Failed generate bash file for unit " + unitId + ". Error: " + e.getMessage());
             throw new PersistenceException(e.getMessage(), e);
         }
     }

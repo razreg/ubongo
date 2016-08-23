@@ -6,6 +6,7 @@ import ubongo.common.datatypes.unit.Unit;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The Persistence module encapsulates the DB, Unit persistence and any other sub-module whose aim is to
@@ -157,7 +158,7 @@ public interface Persistence {
      * @return list of units in the system.
      * @throws PersistenceException if one or more of the units cannot be deserialized (bad format).
      */
-    List<Unit> getAllUnits() throws PersistenceException;
+    Map<Integer,Unit> getAllUnits() throws PersistenceException;
 
     /**
      * Retrieves all tasks from the DB upto the given limit (most recent tasks first).

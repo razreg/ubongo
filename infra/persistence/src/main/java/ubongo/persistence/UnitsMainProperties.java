@@ -6,8 +6,7 @@ import java.util.List;
 
 @XmlRootElement(name = "units")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class
-        UnitsMainProperties {
+public class UnitsMainProperties {
     @XmlElement
     private String machineWorkspaceDir;
 
