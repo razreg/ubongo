@@ -5,8 +5,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ubongo.common.datatypes.FileUnitParameter;
-import ubongo.common.datatypes.StringUnitParameter;
 
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;

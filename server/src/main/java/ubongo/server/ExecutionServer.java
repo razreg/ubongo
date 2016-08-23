@@ -36,7 +36,7 @@ public class ExecutionServer {
     private static final String QUERIES_PATH = "queries";
 
     private static volatile boolean keepRunning = true;
-    private static final int SECONDS_INTERVAL_FOR_REQUESTS_HANDLER = 60;
+    private static final int SECONDS_INTERVAL_FOR_REQUESTS_HANDLER = 20;
 
     private static Logger logger = LogManager.getLogger(ExecutionServer.class);
     private final ScheduledExecutorService requestsHandler = Executors.newScheduledThreadPool(1);

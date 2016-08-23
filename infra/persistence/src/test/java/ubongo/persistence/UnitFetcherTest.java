@@ -6,8 +6,8 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import ubongo.common.datatypes.FileUnitParameter;
-import ubongo.common.datatypes.StringUnitParameter;
+import ubongo.common.datatypes.unit.FileUnitParameter;
+import ubongo.common.datatypes.unit.StringUnitParameter;
 import ubongo.common.datatypes.unit.Unit;
 import ubongo.persistence.exceptions.UnitFetcherException;
 

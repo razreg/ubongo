@@ -4,7 +4,6 @@ package ubongo.machine;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ubongo.common.constants.MachineConstants;
-import ubongo.common.datatypes.MachineStatistics;
 import ubongo.common.datatypes.Task;
 import ubongo.common.datatypes.unit.Unit;
 import ubongo.common.datatypes.unit.UnitParameter;
@@ -20,11 +19,6 @@ import java.util.List;
 public class MachineControllerImpl implements MachineController {
 
     private static Logger logger = LogManager.getLogger(MachineControllerImpl.class);
-
-    @Override
-    public MachineStatistics getStatistics() {
-        return null;
-    }
 
     @Override
     public boolean run(Task task, Path unitsDir, Path baseDir, String machineWorkspaceDir) throws InterruptedException {
