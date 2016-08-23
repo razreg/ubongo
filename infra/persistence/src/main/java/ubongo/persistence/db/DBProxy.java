@@ -160,7 +160,7 @@ public class DBProxy {
             }
             statement.setString(2, status); // status to set if the current status is not Processing
             // update execution time and machine if relevant
-            if (task.getStatus() == TaskStatus.PROCESSING) {
+            if (task.getStatus() == TaskStatus.PROCESSING && task.getMachine() != null) {
                 statement.setInt(3, task.getMachine().getId());
             } else {
                 statement.setNull(3, Types.INTEGER);
@@ -501,6 +501,33 @@ public class DBProxy {
         return true;
     }
 
+    public void insertContextToTask(Task originalTask, List<Task> replacements) throws DBProxyException {
+        connect();
+        String tasksTableName = getTableName(DBConstants.TASKS_TABLE_NAME);
+        for (Task task : replacements) {
+            task.setStatus(TaskStatus.NEW);
+            task.setFlowId(originalTask.getFlowId());
+        }
+        try {
+            String values = getTasksAsValueList(replacements, true);
+            if (values == null) {
+                String errMsg = "System tried to add an empty list of tasks to the database.";
+                logger.warn(errMsg);
+                throw new DBProxyException(errMsg);
+            }
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_INSERT_CONTEXT_TO_TASKS)
+                    .replace("$tasksTable", tasksTableName)
+                    .replace("$values", values);
+            PreparedStatement statement =
+                    connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setInt(1, originalTask.getId());
+            executeUpdate(statement);
+        } catch (SQLException e) {
+            String errorMsg = "Failed to add tasks to DB.";
+            throw new DBProxyException(errorMsg, e);
+        }
+    }
+
     public Task getTask(int id) throws DBProxyException {
         List<Task> tasks = getTasks(DBConstants.QUERY_GET_TASK_BY_ID, id);
         if (tasks.size() == 0) {
@@ -787,6 +814,10 @@ public class DBProxy {
     }
 
     private String getTasksAsValueList(List<Task> tasks) {
+        return getTasksAsValueList(tasks, false);
+    }
+
+    private String getTasksAsValueList(List<Task> tasks, boolean useTaskSFlowId) {
         // (status, flow_id, serial_in_flow, unit_id, unit_params, subject, run, machine_id)
         List<String> valuesList = new ArrayList<>();
         for (Task task : tasks) {
@@ -804,7 +835,8 @@ public class DBProxy {
 
             // we insert a flow to the DB before inserting tasks so LAST_INSERT_ID() returns the flowId
             valuesList.add(Utils.concatStrings(
-                    "('", getStatusString(task.getStatus()), "', LAST_INSERT_ID(), ",
+                    "('", getStatusString(task.getStatus()), "', ",
+                    (useTaskSFlowId ? task.getFlowId()+"": "LAST_INSERT_ID()"), ", ",
                     Integer.toString(task.getSerialNumber()), ", ",
                     ((unit == null)?"NULL":Integer.toString(unit.getId())), ", ",
                     ((unit == null)?"NULL": "'" + getParametersJsonString(unit) + "'"), ", ",

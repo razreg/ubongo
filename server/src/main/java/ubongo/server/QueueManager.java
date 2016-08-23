@@ -287,20 +287,20 @@ public class QueueManager {
                     if (!taskReadyForExecute(currTask)) {
                         continue;
                     }
-                    Machine machine = null;
                     try {
-                        machine = machinesManager.getAvailableMachine();
+                        Machine machine = machinesManager.getAvailableMachine();
+                        currTask.setMachine(machine);
+                        currTask.setStatus(TaskStatus.PROCESSING);
+                        synchronized (taskIdsInCancel) {
+                            if (taskIdsInCancel.contains(currTask.getId())) {
+                                continue;
+                            }
+                        }
                     } catch (MachinesManagementException e) {
                         logger.warn("Queue consumer thread failed to find available machine to run task. Details: " + e.getMessage(), e);
-                        task.setStatus(TaskStatus.ON_HOLD);
-                        updateTaskAfterExecution(task);
-                    }
-                    currTask.setMachine(machine);
-                    currTask.setStatus(TaskStatus.PROCESSING);
-                    synchronized (taskIdsInCancel) {
-                        if (taskIdsInCancel.contains(currTask.getId())) {
-                            continue;
-                        }
+                        currTask.setStatus(TaskStatus.ON_HOLD);
+                        updateTaskAfterExecution(currTask);
+                        continue;
                     }
                     persistence.updateTaskStatus(currTask);
                     if (logger.isDebugEnabled()) {
@@ -457,6 +457,9 @@ public class QueueManager {
                     }
                     for (Task task: tasks) {
                         Task currTask = (Task) task.clone();
+                        if (!insertContextToTask(currTask)) {
+                            continue; // skip this task - it was not filled with context yet
+                        }
                         if (logger.isDebugEnabled()) {
                             logger.debug("Adding new task to queue (taskId=" + currTask.getId() + ")");
                         }
@@ -491,11 +494,20 @@ public class QueueManager {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Queue producer thread shutting down after interrupt");
                 }
-            } catch (PersistenceException e) {
+            } catch (Exception e) {
                 ExecutionServer.notifyFatal(e);
-            } catch (CloneNotSupportedException e) {
-                // not really possible because clone is supported for task
             }
+        }
+
+        // TODO document - return true iff the task can be executed as is
+        private boolean insertContextToTask(Task task) throws Exception {
+            List<Task> tasks = Task.createTasks(task.getUnit(), task.getContext(), task.getSerialNumber());
+            if (tasks.size() == 1 && task.getInputPath().equals(tasks.get(0).getInputPath()) &&
+                    task.getOutputPath().equals(tasks.get(0).getOutputPath())) {
+                return true;
+            }
+            persistence.insertContextToTask(task, tasks);
+            return false;
         }
     }
 

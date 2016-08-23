@@ -394,6 +394,21 @@ public class PersistenceImpl implements Persistence {
         throw new PersistenceException("Unknown reason"); // not possible
     }
 
+    @Override
+    public void insertContextToTask(Task originalTask, List<Task> replacements) throws PersistenceException {
+        int numRetries = 0;
+        while (numRetries++ < MAX_NUM_RETRIES) {
+            try {
+                dbProxy.insertContextToTask(originalTask, replacements);
+                return;
+            } catch (DBProxyException e) {
+                DBProxyException ret;
+                if ((ret = handleDbProxyException(e, numRetries)) != null) throw ret;
+            }
+        }
+        throw new PersistenceException("Unknown reason"); // not possible
+    }
+
     public void clearDebugData() throws PersistenceException {
         new DBMethodInvoker<>(sqlExceptionHandler, dbProxy::clearAllDebugTables).invoke();
     }

@@ -250,4 +250,7 @@ public interface Persistence {
      * @throws PersistenceException if the update to the DB has failed.
      */
     void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException;
+
+    // TODO document
+    void insertContextToTask(Task originalTask, List<Task> replacements) throws PersistenceException;
 }
