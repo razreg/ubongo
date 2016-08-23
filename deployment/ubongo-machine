@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# usage: sh ubongo-machine <server-host-name> <start|stop>
+#   e.g. sh ubongo-machine rack-hezi-03 start
+
 # Find the script directory DIR
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -10,16 +13,17 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 SERVICE_NAME=UbongoMachine
-SERVER=rack-hezi-03
+SERVER=$1
 BASE="$DIR"/..
 LOG_DIR="$BASE"/logs
 CONF_PATH="$BASE"/config/ubongo-config.xml
 UNITS_PATH=bash/
 QUERIES_PATH="$DIR"/../db/queries.properties
+LOG_CONFIG="$DIR"/../config/log4j2.xml
 PATH_TO_JAR="$BASE"/ubongo-machine.jar
 PID_PATH_NAME="$BASE"/ubongo-machine-pid
 
-case $1 in
+case $2 in
     start)
         echo "Starting $SERVICE_NAME ..."
         if [ ! -f $PID_PATH_NAME ]; then
@@ -30,8 +34,10 @@ case $1 in
             echo "Using CONF_PATH = $CONF_PATH"
             echo "Using UNITS_PATH = $UNITS_PATH"
             echo "Using QUERIES_PATH = $QUERIES_PATH"
+            echo "Using LOG_CONFIG = $LOG_CONFIG"
             nohup java -Dbase_dir=$BASE -Dserver=$SERVER -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH \
-            -Dunits_dir=$UNITS_PATH -Dqueries=$QUERIES_PATH -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
+            -Dlog4j.configuration=$LOG_CONFIG -Dunits_dir=$UNITS_PATH -Dqueries=$QUERIES_PATH \
+            -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
                         echo $! > $PID_PATH_NAME
             echo "$SERVICE_NAME started ..."
         else

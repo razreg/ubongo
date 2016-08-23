@@ -18,6 +18,13 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>src/main/resources</directory>
+            <outputDirectory>config</outputDirectory>
+            <includes>
+                <include>log4j*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>../data/units</directory>
             <outputDirectory>units</outputDirectory>
             <includes>

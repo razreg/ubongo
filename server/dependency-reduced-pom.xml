@@ -8,16 +8,16 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ubongo-server</artifactId>
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+          <exclude>log4j2.xml</exclude>
+        </excludes>
+      </resource>
+    </resources>
     <finalName>ubongo-server</finalName>
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
-        </configuration>
-      </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.3</version>
@@ -55,47 +55,5 @@
       </plugin>
     </plugins>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>hamcrest-core</artifactId>
-          <groupId>org.hamcrest</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-core</artifactId>
-      <version>1.6.3</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>powermock-reflect</artifactId>
-          <groupId>org.powermock</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>javassist</artifactId>
-          <groupId>org.javassist</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <version>1.6.2</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>powermock-module-junit4-common</artifactId>
-          <groupId>org.powermock</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-  </dependencies>
 </project>
 

@@ -65,11 +65,6 @@ public interface ServiceProvider {
     // used for re-run a task that has failed (and now on hold), or killed\canceled - or if it is on hold because of previous failed task.
     void resumeTask(Task task) throws PersistenceException;
 
-    // TODO show task log from machine combined with server log (with grep on taskId)
-    List<String> showTaskLogs(int taskId);
-
-    List<String> showServerLog();
-
     /**
      * Retrieves all the execution units in the system.
      * @return list of units (may be empty if no units re found).
@@ -79,7 +74,7 @@ public interface ServiceProvider {
 
     void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException;
 
-    void generateBashFileForNewUnit(int unitId) throws PersistenceException; // TODO use in UI
+    void generateBashFileForNewUnit(int unitId) throws PersistenceException;
 
     int countRequests(Timestamp t) throws PersistenceException;
 

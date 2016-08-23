@@ -21,7 +21,6 @@
 
       $scope.generateBash = function() {
         var selectedId = $scope.selectedUnitForBash.id;
-        // TODO http request
       };
 
     }]);

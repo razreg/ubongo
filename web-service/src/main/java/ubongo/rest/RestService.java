@@ -414,47 +414,6 @@ public final class RestService {
     }
 
     @GET
-    @Path("flows/{flowId}/tasks/{taskId}/logs")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getTaskLogs(@PathParam("flowId") int flowId,
-                              @PathParam("taskId") int taskId) throws UbongoHttpException {
-        init();
-        ObjectMapper mapper = new ObjectMapper();
-        String response;
-        try {
-            List<String> logs = serviceProvider.showTaskLogs(taskId);
-            if (logs == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve task logs.");
-            }
-            response = mapper.writeValueAsString(logs);
-        }
-        catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize logs to JSON.");
-        }
-        return response;
-    }
-
-    @GET
-    @Path("log")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getServerLog() throws UbongoHttpException {
-        init();
-        ObjectMapper mapper = new ObjectMapper();
-        String response;
-        try {
-            List<String> logs = serviceProvider.showServerLog();
-            if (logs == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve server log.");
-            }
-            response = mapper.writeValueAsString(logs);
-        }
-        catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize server log to JSON.");
-        }
-        return response;
-    }
-
-    @GET
     @Path("units")
     @Produces(MediaType.APPLICATION_JSON)
     public String getAllUnits() throws UbongoHttpException {

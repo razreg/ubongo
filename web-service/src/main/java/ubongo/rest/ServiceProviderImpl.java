@@ -17,8 +17,6 @@ import java.util.List;
 
 public class ServiceProviderImpl implements ServiceProvider {
 
-    // TODO need to add ServletContextListener that will close connections on shutdown?
-
     private static Logger logger = LogManager.getLogger(ServiceProviderImpl.class);
 
     private Persistence persistence;
@@ -123,16 +121,6 @@ public class ServiceProviderImpl implements ServiceProvider {
     public void resumeTask(Task task) throws PersistenceException {
         ExecutionRequest request = new ExecutionRequest(task.getId(), ExecutionRequest.Action.RESUME_TASK);
         persistence.saveRequest(request);
-    }
-
-    @Override
-    public List<String> showTaskLogs(int taskId) {
-        return null; // TODO implement showTaskLogs
-    }
-
-    @Override
-    public List<String> showServerLog() {
-        return null; // TODO implement showServerLog
     }
 
     @Override

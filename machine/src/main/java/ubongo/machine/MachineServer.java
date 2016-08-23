@@ -42,7 +42,7 @@ public class MachineServer {
 
     public void start() throws PersistenceException {
         Persistence persistence = new PersistenceImpl(unitsDir, configuration.getDbConnectionProperties(),
-                configuration.getSshConnectionProperties(), null, queriesPath, true); // TODO change last argument to some system property and not constant? eventually should be 'false'
+                configuration.getSshConnectionProperties(), null, queriesPath, true); // TODO change last argument to some system property (debug)
         persistence.start();
         initHeartbeat(persistence);
     }

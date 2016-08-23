@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# usage: sh ubongo-server <start|stop>
+
 # Find the script directory DIR
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -14,6 +16,7 @@ LOG_DIR="$DIR"/../logs
 CONF_PATH="$DIR"/../config/ubongo-config.xml
 UNITS_PATH="$DIR"/../units
 QUERIES_PATH="$DIR"/../db/queries.properties
+LOG_CONFIG="$DIR"/../config/log4j2.xml
 PATH_TO_JAR="$DIR"/../ubongo-server.jar
 PID_PATH_NAME="$DIR"/../ubongo-server-pid
 
@@ -26,8 +29,9 @@ case $1 in
             echo "Using CONF_PATH = $CONF_PATH"
             echo "Using UNITS_PATH = $UNITS_PATH"
             echo "Using QUERIES_PATH = $QUERIES_PATH"
+            echo "Using LOG_CONFIG = $LOG_CONFIG"
             nohup java -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH -Dunits_path=$UNITS_PATH -Dqueries=$QUERIES_PATH \
-            -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
+            -Dlog4j.configuration=$LOG_CONFIG -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
                         echo $! > $PID_PATH_NAME
             echo "$SERVICE_NAME started ..."
         else

@@ -164,7 +164,15 @@ public class QueueManager {
         for (int i = 0; i < NUM_CONSUMER_THREADS; i++)
             consumers.execute(new Consumer(queue, persistence));
         producer = Executors.newSingleThreadExecutor();
+        // TODO delay the producer from beginning so that it won't handle new tasks before the server is clean
         producer.execute(new Producer(queue, persistence));
+    }
+
+    /**
+     * @see QueueManager#handleCompletedTask(Task, boolean)
+     */
+    synchronized private boolean handleCompletedTask(Task task) throws PersistenceException {
+        return handleCompletedTask(task, true);
     }
 
     /**
@@ -175,10 +183,12 @@ public class QueueManager {
      * On the other hand, if some task failed or was stopped, then its dependents (those with a greater serial number)
      * cannot be executed until manual intervention and therefore will change status to On_Hold.
      * @param task to be handled.
+     * @param letProducerWorkWhenDone tells the method whether the producer can work after this run -
+     *        it is required since this method is recursive and we want the producer to work only once it is completed.
      * @return true iff some tasks were updated to 'New' as a result of the completion of task.
      * @throws PersistenceException if updating the DB has failed.
      */
-    synchronized private boolean handleCompletedTask(Task task) throws PersistenceException {
+    synchronized private boolean handleCompletedTask(Task task, boolean letProducerWorkWhenDone) throws PersistenceException {
         TaskKey key = new TaskKey(task);
         DependencyKey dependencyKey = setLocatorMap.get(key);
         if (dependencyKey == null) {
@@ -192,19 +202,26 @@ public class QueueManager {
             // if the following tasks can be executed or should be on hold
             if (taskIdsSet.isEmpty() || task.getStatus() == TaskStatus.FAILED ||
                     task.getStatus() == TaskStatus.STOPPED || task.getStatus() == TaskStatus.ON_HOLD) {
-                Set<Task> pendingTasks = dependencyMap.get(dependencyKey.getId());
-                if (pendingTasks != null) {
-                    TaskStatus newStatus = task.getStatus() == TaskStatus.COMPLETED ?
-                            TaskStatus.NEW : TaskStatus.ON_HOLD;
-                    /* send pendingTasks back to DB as NEW so they will be retrieved by the queue
+                Set<Task> dependingTasks = dependencyMap.get(dependencyKey.getId());
+                if (dependingTasks != null) {
+                    boolean makeNew = task.getStatus() == TaskStatus.COMPLETED;
+                    TaskStatus newStatus = makeNew ? TaskStatus.NEW : TaskStatus.ON_HOLD;
+                    /* send dependingTasks back to DB as NEW so they will be retrieved by the queue
                        and next time it will be able to run them (this allows orderly dependency verification),
                        or change status to On Hold if the flow is stuck */
-                    pendingTasks.forEach(t -> t.setStatus(newStatus));
-                    persistence.updateTasksStatus(pendingTasks);
+                    dependingTasks.forEach(t -> t.setStatus(newStatus));
+                    persistence.updateTasksStatus(dependingTasks);
+                    if (makeNew) {
+                        for (Task t : dependingTasks) {
+                            handleCompletedTask(t, false);
+                        }
+                    }
                 }
-                synchronized(producerLock) {
-                    producerMayWork = true;
-                    producerLock.notify();
+                if (letProducerWorkWhenDone) {
+                    synchronized (producerLock) {
+                        producerMayWork = true;
+                        producerLock.notify();
+                    }
                 }
                 dependencyMap.remove(dependencyKey.getId());
                 setLocatorMap.remove(key);
@@ -475,7 +492,7 @@ public class QueueManager {
                     logger.debug("Queue producer thread shutting down after interrupt");
                 }
             } catch (PersistenceException e) {
-                // TODO handle PersistenceException in queue producer
+                ExecutionServer.notifyFatal(e);
             } catch (CloneNotSupportedException e) {
                 // not really possible because clone is supported for task
             }

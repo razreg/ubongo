@@ -108,11 +108,6 @@ public class ExecutionServer {
         executionProxy = ExecutionProxy.getInstance();
         machinesManager = new MachinesManager(machines, persistence);
         queueManager = new QueueManager(persistence, machinesManager);
-        try {
-            tasksStatusListener();
-        } catch (Exception e) {
-            notifyFatal(e);
-        }
     }
 
     private void start() {
@@ -121,7 +116,7 @@ public class ExecutionServer {
         } catch (PersistenceException e) {
             queueManager = null;
             machinesManager = null;
-            logger.error("Server failed to start the persistence module.");
+            logger.fatal("Server failed to start the persistence module.");
             keepRunning = false;
             return;
         }
@@ -129,11 +124,19 @@ public class ExecutionServer {
             machinesManager.start();
         } catch (PersistenceException e) {
             queueManager = null;
-            logger.error("Server failed to start the machines manager.");
+            logger.fatal("Server failed to start the machines manager.");
             keepRunning = false;
             return;
         }
         queueManager.start();
+        try {
+            tasksStatusListener();
+        } catch (Exception e) {
+            queueManager = null;
+            logger.fatal("Server failed to start the task status listener (RabbitMQ listener).");
+            keepRunning = false;
+            return;
+        }
 
         requestsHandler.scheduleAtFixedRate(() -> {
             List<ExecutionRequest> requests;
@@ -256,8 +259,7 @@ public class ExecutionServer {
      * @param e throwable that caused the fatal error.
      */
     protected static void notifyFatal(Throwable e) {
-        // TODO stop the server after updating the DB about the crash (keepRunning = false)
-        // TODO reflect in UI that the server failed and needs to be restarted and handled with care
+
     }
 
     private void tasksStatusListener() throws IOException, TimeoutException {
