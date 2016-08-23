@@ -37,7 +37,7 @@ case $2 in
             echo "Using LOG_CONFIG = $LOG_CONFIG"
             nohup java -Dbase_dir=$BASE -Dserver=$SERVER -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH \
             -Dlog4j.configuration=$LOG_CONFIG -Dunits_dir=$UNITS_PATH -Dqueries=$QUERIES_PATH \
-            -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
+            -jar $PATH_TO_JAR 2>> /dev/null >> /dev/null &
                         echo $! > $PID_PATH_NAME
             echo "$SERVICE_NAME started ..."
         else
