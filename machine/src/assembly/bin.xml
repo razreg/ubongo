@@ -24,6 +24,13 @@
                 <include>*</include>
             </includes>
         </fileSet>
+        <fileSet>
+            <directory>../infra/persistence/src/main/resources/db</directory>
+            <outputDirectory>db</outputDirectory>
+            <includes>
+                <include>*</include>
+            </includes>
+        </fileSet>
 
         <fileSet>
             <directory>../deployment</directory>
