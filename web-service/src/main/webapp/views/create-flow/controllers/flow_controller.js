@@ -20,6 +20,11 @@
           $scope.contextScope.flowMainForm.subjectInput.$modelValue : '.*';
         var _run = $scope.contextScope.flow.allRuns == 'custom' ?
           $scope.contextScope.flowMainForm.runInput.$modelValue : '.*';
+        var context = {
+          study: study,
+          subject: subject === undefined ? '' : subject,
+          run: _run === undefined ? '' : _run
+        };
         var serialNumberCounter = 0;
         var flowTasks = $scope.unitsScope.unitGridOptions.data
           .map(function(unit) {
@@ -29,15 +34,11 @@
                 id: unit.id,
                 parameters: unit.parameters
               },
-              context: {
-                study: study,
-                subject: subject === undefined ? '' : subject,
-                run: _run === undefined ? '' : _run
-              }
+              context: context
             };
           });
         $http.post('rest/api/flows', {
-            studyName: study,
+            context: context,
             tasks: flowTasks
           })
           .success(function(data) {

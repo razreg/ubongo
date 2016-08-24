@@ -47,6 +47,8 @@ public class DBConstants {
     public final static String FLOWS_TABLE_NAME = "flows";
     public final static String FLOWS_FLOW_ID = "flow_id";
     public final static String FLOWS_STUDY_NAME = "study_name";
+    public final static String FLOWS_SUBJECT = "subject";
+    public final static String FLOWS_RUN = "run";
     public final static String FLOWS_INSERTION_TIME = "insertion_time";
     public final static String FLOWS_STATUS = "status";
 

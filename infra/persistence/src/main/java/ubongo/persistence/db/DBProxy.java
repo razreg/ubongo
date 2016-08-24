@@ -429,7 +429,7 @@ public class DBProxy {
         }
     }
 
-    public int createFlow(String studyName, List<Task> tasks) throws DBProxyException {
+    public int createFlow(Context context, List<Task> tasks) throws DBProxyException {
         connect();
         String tasksTableName = getTableName(DBConstants.TASKS_TABLE_NAME);
         String flowsTableName = getTableName(DBConstants.FLOWS_TABLE_NAME);
@@ -449,7 +449,9 @@ public class DBProxy {
                     .replace("$values", values);
             PreparedStatement statement =
                     connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, studyName);
+            statement.setString(1, context.getStudy());
+            statement.setString(2, context.getSubject());
+            statement.setString(3, context.getRun());
             executeUpdate(statement);
             ResultSet results = statement.getGeneratedKeys();
             results.next();
@@ -801,9 +803,12 @@ public class DBProxy {
     }
 
     private FlowData flowFromResultSet(ResultSet resultSet) throws SQLException {
+        Context context = new Context();
+        context.setStudy(resultSet.getString(DBConstants.FLOWS_STUDY_NAME));
+        context.setSubject(resultSet.getString(DBConstants.FLOWS_SUBJECT));
+        context.setRun(resultSet.getString(DBConstants.FLOWS_RUN));
         return new FlowData(
-                resultSet.getInt(DBConstants.FLOWS_FLOW_ID),
-                resultSet.getString(DBConstants.FLOWS_STUDY_NAME),
+                resultSet.getInt(DBConstants.FLOWS_FLOW_ID), context,
                 timestampToDate(resultSet.getTimestamp(DBConstants.FLOWS_INSERTION_TIME)),
                 FlowStatus.valueOf(resultSet.getString(DBConstants.FLOWS_STATUS).toUpperCase())
         );

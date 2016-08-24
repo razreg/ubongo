@@ -1,9 +1,6 @@
 package ubongo.rest;
 
-import ubongo.common.datatypes.ExecutionRequest;
-import ubongo.common.datatypes.FlowData;
-import ubongo.common.datatypes.Machine;
-import ubongo.common.datatypes.Task;
+import ubongo.common.datatypes.*;
 import ubongo.common.datatypes.unit.Unit;
 import ubongo.persistence.exceptions.PersistenceException;
 
@@ -40,12 +37,12 @@ public interface ServiceProvider {
 
     /**
      * Creates a flow in the DB.
-     * @param studyName of the flow.
+     * @param context of the flow.
      * @param tasks composed of the units and the flow context.
      * @return flow id.
      * @throws PersistenceException if the creation of the flow in the DB failed.
      */
-    int createFlow(String studyName, List<Task> tasks) throws PersistenceException;
+    int createFlow(Context context, List<Task> tasks) throws PersistenceException;
 
     void cancelFlow(int flowId) throws PersistenceException;
 

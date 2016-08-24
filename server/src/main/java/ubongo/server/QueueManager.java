@@ -311,6 +311,13 @@ public class QueueManager {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Sending task for execution (taskId=" + currTask.getId() + ")");
                     }
+                    if (currTask.getOutputPath().contains("*")) {
+                        logger.error("Tried to execute taskId=" + currTask.getId()
+                                + " but found '*' in the output path: " + currTask.getOutputPath());
+                        currTask.setStatus(TaskStatus.FAILED);
+                        updateTaskAfterExecution(currTask);
+                        continue;
+                    }
                     executionProxy.execute(currTask, QueueManager.this);
                 }
             } catch (InterruptedException e) {

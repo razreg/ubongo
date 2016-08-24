@@ -103,11 +103,11 @@ public class PersistenceImpl implements Persistence {
     }
 
     @Override
-    public int createFlow(String studyName, List<Task> tasks) throws PersistenceException {
+    public int createFlow(Context context, List<Task> tasks) throws PersistenceException {
         int numRetries = 0;
         while (numRetries++ < MAX_NUM_RETRIES) {
             try {
-                return dbProxy.createFlow(studyName, tasks);
+                return dbProxy.createFlow(context, tasks);
             } catch (DBProxyException e) {
                 DBProxyException ret;
                 if ((ret = handleDbProxyException(e, numRetries)) != null) throw ret;

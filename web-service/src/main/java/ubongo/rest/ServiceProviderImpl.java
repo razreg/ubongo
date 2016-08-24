@@ -83,8 +83,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     @Override
-    public int createFlow(String studyName, List<Task> tasks) throws PersistenceException {
-        return persistence.createFlow(studyName, tasks);
+    public int createFlow(Context context, List<Task> tasks) throws PersistenceException {
+        return persistence.createFlow(context, tasks);
     }
 
     @Override

@@ -272,13 +272,14 @@ public final class RestService {
     public String createFlow(String requestBody) throws UbongoHttpException {
         init();
         int flow;
-        String studyName;
+        ubongo.common.datatypes.Context context;
         List<Task> tasks;
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode jsonNode = mapper.readTree(requestBody);
-            if (jsonNode.hasNonNull("studyName")) {
-                studyName = jsonNode.get("studyName").asText();
+            if (jsonNode.hasNonNull("context")) {
+                context = mapper.readValue(jsonNode.get("context").toString(),
+                        new TypeReference<ubongo.common.datatypes.Context>(){});
             } else {
                 throw new UbongoHttpException(400, "Study name for flow cannot be empty nor null.");
             }
@@ -288,7 +289,7 @@ public final class RestService {
             } else {
                 throw new UbongoHttpException(400, "Flow must contain at least one task.");
             }
-            flow = serviceProvider.createFlow(studyName, tasks);
+            flow = serviceProvider.createFlow(context, tasks);
         } catch (IOException e) {
             throw new UbongoHttpException(500, "Failed to deserialize JSON to FlowData.");
         } catch (PersistenceException e) {

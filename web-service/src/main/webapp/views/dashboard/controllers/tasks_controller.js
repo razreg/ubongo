@@ -64,6 +64,8 @@
             $scope.taskDetailsGridOptions.data = [
               {property: 'Status', value: details.status},
               {property: 'Unit name', value: details.unit.name},
+              {property: 'Subject', value: details.context.subject},
+              {property: 'Run', value: details.context.run},
               {property: 'Unit params', value: $.extend(true, [], details.unit.parameters)},
               {property: 'Input path', value: details.inputPath},
               {property: 'Output path', value: details.outputPath}
@@ -118,12 +120,13 @@
         $http.get('rest/api/flows/' + $scope.selectedOption + '/tasks')
           .success(function(data) {
             if (data.length > 0) {
+              var flowData = $scope.flows.filter(function(flow) {
+                return flow.flowId+'' == $scope.selectedOption;
+              })[0];
               $scope.currFlow = {
                 tasks: data,
-                context: data[0].context,
-                status: $scope.flows.filter(function(flow) {
-                  return flow.flowId+'' == $scope.selectedOption;
-                })[0].status
+                context: flowData.context,
+                status: flowData.status
               };
               $scope.taskGridOptions.data = data.map(function(task) {
                 return {

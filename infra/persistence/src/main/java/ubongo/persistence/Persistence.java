@@ -58,13 +58,13 @@ public interface Persistence {
 
     /**
      * Creates a new flow in Flows table.
-     * @param studyName is the name of the study.
+     * @param context of the flow.
      * @param tasks to execute in this flow.
      * @return flowId in DB.
      * @throws PersistenceException if creation failed, usually due to DB connection error or a
      * data problem with tasks.
      */
-    int createFlow(String studyName, List<Task> tasks) throws PersistenceException;
+    int createFlow(Context context, List<Task> tasks) throws PersistenceException;
 
     /**
      * Updates the status of the tasks of the given flow to allow the Execution module {@link ubongo.server}

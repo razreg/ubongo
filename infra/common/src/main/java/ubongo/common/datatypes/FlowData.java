@@ -8,15 +8,15 @@ import java.util.Date;
 public class FlowData {
 
     private int flowId;
-    private String studyName;
+    private Context context;
 
     @JsonSerialize(using=JsonDateSerializer.class)
     private Date creationDate;
     private FlowStatus status;
 
-    public FlowData(int flowId, String studyName, Date creationDate, FlowStatus status) {
+    public FlowData(int flowId, Context context, Date creationDate, FlowStatus status) {
         this.flowId = flowId;
-        this.studyName = studyName;
+        this.setContext(context);
         this.creationDate = creationDate;
         this.status = status;
     }
@@ -27,14 +27,6 @@ public class FlowData {
 
     public void setFlowId(int flowId) {
         this.flowId = flowId;
-    }
-
-    public String getStudyName() {
-        return studyName;
-    }
-
-    public void setStudyName(String studyName) {
-        this.studyName = studyName;
     }
 
     public Date getCreationDate() {
@@ -51,5 +43,13 @@ public class FlowData {
 
     public void setStatus(FlowStatus status) {
         this.status = status;
+    }
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
     }
 }

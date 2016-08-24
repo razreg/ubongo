@@ -10,7 +10,7 @@
                         <option disabled selected ng-bind="defaultFlowText.value" value="0"></option>
                         <option ng-repeat="flow in flows" value="{{flow.flowId}}"
                                 ng-selected="flow.flowId+''==selectedOption"
-                                ng-bind="flow.flowId + ' - ' + flow.studyName"></option>
+                                ng-bind="flow.flowId + ' - ' + flow.context.study"></option>
                     </select>
                 </td>
             </tr>
