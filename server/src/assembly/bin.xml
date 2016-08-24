@@ -39,7 +39,10 @@
                 <include>*</include>
             </includes>
         </fileSet>
-
+        <fileSet> <!-- Create empty directory -->
+            <outputDirectory>workspace</outputDirectory>
+            <excludes><exclude>**/*</exclude></excludes>
+        </fileSet>
         <fileSet>
             <directory>../deployment</directory>
             <outputDirectory>scripts</outputDirectory>

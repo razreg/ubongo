@@ -1,7 +1,8 @@
 #!/bin/sh
 
-# usage: sh ubongo-machine <server-host-name> <start|stop>
-#   e.g. sh ubongo-machine rack-hezi-03 start
+# usage: sh ubongo-machine.sh <server-host-name> <start|stop>
+#   e.g. sh ubongo-machine.sh rack-hezi-03 start
+#        sh ubongo-machine.sh stop
 
 # Find the script directory DIR
 SOURCE="${BASH_SOURCE[0]}"
@@ -15,11 +16,11 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 SERVICE_NAME=UbongoMachine
 SERVER=$1
 BASE="$DIR"/..
-LOG_DIR="$BASE"/logs
-CONF_PATH="$BASE"/config/ubongo-config.xml
-UNITS_PATH="$BASE"/units/
-QUERIES_PATH="$DIR"/../db/queries.properties
-LOG_CONFIG="$DIR"/../config/log4j2.xml
+LOG_DIR="$BASE"/../logs
+CONF_PATH="$BASE"/../config/ubongo-config.xml
+UNITS_PATH="$BASE"/../units/
+QUERIES_PATH="$BASE"/../db/queries.properties
+LOG_CONFIG="$BASE"/config/log4j2.xml
 PATH_TO_JAR="$BASE"/ubongo-machine.jar
 PID_PATH_NAME="$BASE"/ubongo-machine-pid
 
@@ -28,14 +29,13 @@ case $2 in
         echo "Starting $SERVICE_NAME ..."
         if [ ! -f $PID_PATH_NAME ]; then
             echo "Using SERVER = $SERVER"
-            echo "Using BASE = $BASE"
             echo "Using PATH_TO_JAR = $PATH_TO_JAR"
             echo "Using LOG_DIR = $LOG_DIR"
             echo "Using CONF_PATH = $CONF_PATH"
             echo "Using UNITS_PATH = $UNITS_PATH"
             echo "Using QUERIES_PATH = $QUERIES_PATH"
             echo "Using LOG_CONFIG = $LOG_CONFIG"
-            nohup java -Dbase_dir=$BASE -Dserver=$SERVER -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH \
+            nohup java -Dbase_dir=$BASE/.. -Dserver=$SERVER -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH \
             -Dlog4j.configurationFile=$LOG_CONFIG -Dunits_dir=$UNITS_PATH -Dqueries=$QUERIES_PATH \
             -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
                         echo $! > $PID_PATH_NAME

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# usage: sh ubongo-server <start|stop>
+# usage: sh ubongo-server.sh <start|stop>
 
 # Find the script directory DIR
 SOURCE="${BASH_SOURCE[0]}"

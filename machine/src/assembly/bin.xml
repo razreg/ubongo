@@ -11,40 +11,12 @@
 
     <fileSets>
         <fileSet>
-            <directory>../data/config</directory>
-            <outputDirectory>config</outputDirectory>
-            <includes>
-                <include>*</include>
-            </includes>
-        </fileSet>
-        <fileSet>
             <directory>src/main/resources</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
                 <include>log4j*</include>
             </includes>
         </fileSet>
-        <fileSet>
-            <directory>../data/units</directory>
-            <outputDirectory>units</outputDirectory>
-            <includes>
-                <include>*</include>
-            </includes>
-            <lineEnding>unix</lineEnding>
-        </fileSet>
-        <fileSet>
-            <directory>../infra/persistence/src/main/resources/db</directory>
-            <outputDirectory>db</outputDirectory>
-            <includes>
-                <include>*</include>
-            </includes>
-        </fileSet>
-        <fileSets>
-            <fileSet> <!-- Create empty directory -->
-                <outputDirectory>machineWorkspace</outputDirectory>
-                <excludes><exclude>**/*</exclude></excludes>
-            </fileSet>
-        </fileSets>
         <fileSet>
             <directory>../deployment</directory>
             <outputDirectory>scripts</outputDirectory>

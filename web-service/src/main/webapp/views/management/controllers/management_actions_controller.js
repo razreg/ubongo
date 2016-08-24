@@ -30,7 +30,7 @@
 
       $scope.generateBash = function() {
         var selectedId = $scope.selectedUnitForBash.id;
-        $http.post('rest/api/unitss/' + selectedId, {})
+        $http.post('rest/api/units/' + selectedId, {})
           .success(function() {
             displayMsg(true, 'A request to generate bash for unit was sent to the server', GOOD_STYLE);
           })
