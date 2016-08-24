@@ -464,6 +464,7 @@ public class QueueManager {
                         if (!insertContextToTask(currTask)) {
                             continue; // skip this task - it was not filled with context yet
                         }
+                        if (holdTaskIfPreviousTasksAreStuck(currTask)) continue;
                         if (logger.isDebugEnabled()) {
                             logger.debug("Adding new task to queue (taskId=" + currTask.getId() + ")");
                         }
@@ -501,6 +502,32 @@ public class QueueManager {
             } catch (Exception e) {
                 ExecutionServer.notifyFatal(e);
             }
+        }
+
+        private boolean holdTaskIfPreviousTasksAreStuck(Task currTask) throws PersistenceException {
+            int serial = currTask.getSerialNumber() - 1;
+            List<Task> previousHoldingTasks = persistence.getTasks(currTask.getFlowId()).stream()
+                    .filter(t -> t.getSerialNumber() == serial &&
+                            (t.getStatus() == TaskStatus.FAILED ||
+                                    t.getStatus() == TaskStatus.CANCELED ||
+                                    t.getStatus() == TaskStatus.STOPPED ||
+                                    t.getStatus() == TaskStatus.STOPPED_FAILURE ||
+                                    t.getStatus() == TaskStatus.ON_HOLD)).collect(Collectors.toList());
+            if (!previousHoldingTasks.isEmpty()) {
+                synchronized (consumerLock) {
+                    producerUpdatingDatabase = true;
+                }
+                currTask.setStatus(TaskStatus.ON_HOLD);
+                logger.debug("Found holding tasks for current taskId="
+                        + currTask.getId() + ". Changing status to 'On Hold'.");
+                updateTaskAfterExecution(currTask);
+                synchronized (consumerLock) {
+                    producerUpdatingDatabase = false;
+                    consumerLock.notifyAll();
+                }
+                return true;
+            }
+            return false;
         }
 
         /**
