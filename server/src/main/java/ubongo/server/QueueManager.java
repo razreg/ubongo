@@ -204,8 +204,9 @@ public class QueueManager {
         if (taskIdsSet != null) {
             taskIdsSet.remove(task.getId());
             // if the following tasks can be executed or should be on hold
-            if (taskIdsSet.isEmpty() || task.getStatus() == TaskStatus.FAILED ||
-                    task.getStatus() == TaskStatus.STOPPED || task.getStatus() == TaskStatus.ON_HOLD) {
+            if (taskIdsSet.isEmpty() || task.getStatus() == TaskStatus.FAILED || task.getStatus() == TaskStatus.CANCELED
+                    || task.getStatus() == TaskStatus.STOPPED_FAILURE || task.getStatus() == TaskStatus.STOPPED
+                    || task.getStatus() == TaskStatus.ON_HOLD) {
                 Set<Task> dependingTasks = dependencyMap.get(dependencyKey.getId());
                 if (dependingTasks != null) {
                     boolean makeNew = task.getStatus() == TaskStatus.COMPLETED;
@@ -215,7 +216,7 @@ public class QueueManager {
                        or change status to On Hold if the flow is stuck */
                     dependingTasks.forEach(t -> t.setStatus(newStatus));
                     persistence.updateTasksStatus(dependingTasks);
-                    if (makeNew) {
+                    if (!makeNew) {
                         for (Task t : dependingTasks) {
                             handleCompletedTask(t, false);
                         }

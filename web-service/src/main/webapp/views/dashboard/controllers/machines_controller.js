@@ -58,7 +58,7 @@
       }
 
       function isDateTooOld(utcSeconds) {
-        return new Date().getTime()/1000 - utcSeconds > 60 * 3; // 3 minutes interval to detect disconnected machine
+        return new Date().getTime()/1000 - utcSeconds > 60 * 2; // 2 minutes interval to detect disconnected machine
       }
 
       // machines grid

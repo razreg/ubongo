@@ -92,7 +92,7 @@ public class MachinesManager {
             throw new MachinesManagementException("Failed to retrieve machines from DB.", e);
         }
         final Timestamp oldTime =
-                new Timestamp(new Date().getTime() - 1000 * SECONDS_BETWEEN_HEARTBEAT_CYCLES * 5);
+                new Timestamp(new Date().getTime() - 1000 * SECONDS_BETWEEN_HEARTBEAT_CYCLES * 3);
         return machines.stream()
                 .filter(m -> m.isActive() && m.isConnected() &&
                         m.getLastHeartbeat() != null && m.getLastHeartbeat().after(oldTime))
