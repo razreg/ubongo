@@ -25,26 +25,4 @@
 
     }]);
 
-  angular.module('ubongoApp').controller('LogsDatePicker', ['$scope', function($scope) {
-    $scope.logsStartDate = new Date();
-    $scope.minDate = new Date(
-      $scope.logsStartDate.getFullYear(),
-      $scope.logsStartDate.getMonth() - 2,
-      $scope.logsStartDate.getDate());
-    $scope.maxDate = new Date(
-      $scope.logsStartDate.getFullYear(),
-      $scope.logsStartDate.getMonth(),
-      $scope.logsStartDate.getDate());
-  }])
-    .config(function($mdDateLocaleProvider) {
-      $mdDateLocaleProvider.formatDate = function(date) {
-        return moment(date).format('DD/MM/YYYY');
-      };
-
-      $mdDateLocaleProvider.parseDate = function(dateString) {
-        var m = moment(dateString, 'DD/MM/YYYY', true);
-        return m.isValid() ? m.toDate() : new Date(NaN);
-      };
-  });
-
 })();
