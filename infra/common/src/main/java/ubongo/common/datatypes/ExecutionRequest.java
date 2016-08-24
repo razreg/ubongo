@@ -76,7 +76,8 @@ public class ExecutionRequest implements Serializable {
         RUN_FLOW ("Run_Flow"),
         CANCEL_FLOW ("Cancel_Flow"),
         ACTIVATE_MACHINE ("Activate_Machine"),
-        DEACTIVATE_MACHINE ("Deactivate_Machine");
+        DEACTIVATE_MACHINE ("Deactivate_Machine"),
+        GENERATE_BASH ("Generate_Bash");
 
         private String name;
 

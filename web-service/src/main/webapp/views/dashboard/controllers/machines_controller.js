@@ -101,7 +101,7 @@
 
       $scope.changeActivationStatus = function() {
         var action = ($scope.currMachine.active ? 'de' : '') + 'activate';
-        $http.post('rest/api/machines/' + $scope.currMachine.id + '?' + action + '=true')
+        $http.post('rest/api/machines/' + $scope.currMachine.id + '?' + action + '=true', {})
           .success(function() {
             displayMsg(true, 'A request to ' + action + ' machine was sent to the server', GOOD_STYLE);
           })

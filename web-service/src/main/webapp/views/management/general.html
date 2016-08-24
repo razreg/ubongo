@@ -23,6 +23,9 @@
                         <p></p>
                     </td>
                 </tr>
+                <tr ng-if="err.display">
+                    <td colspan="2" ng-bind="err.msg" ng-style="err.style" align="center"></td>
+                </tr>
             </table>
         </ng-form>
     </div>

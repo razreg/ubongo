@@ -1,4 +1,4 @@
-package ubongo.rest;
+package ubongo.persistence;
 
 import ubongo.common.constants.MachineConstants;
 import ubongo.common.datatypes.unit.Unit;

@@ -75,7 +75,7 @@ public interface ServiceProvider {
 
     void changeMachineActivityStatus(int machineId, boolean activate) throws PersistenceException;
 
-    void generateBashFileForNewUnit(int unitId) throws PersistenceException;
+    void generateBashFileForUnit(int unitId) throws PersistenceException;
 
     int countRequests(Timestamp t) throws PersistenceException;
 

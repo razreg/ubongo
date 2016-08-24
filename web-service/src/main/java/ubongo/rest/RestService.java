@@ -461,4 +461,16 @@ public final class RestService {
             }
         }
     }
+
+    @POST
+    @Path("units/{unitId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void generateBashForUnit(@PathParam("unitId") int unitId) throws UbongoHttpException {
+        init();
+        try {
+            serviceProvider.generateBashFileForUnit(unitId);
+        } catch (PersistenceException e) {
+            throw new UbongoHttpException(500, "Failed to send request for bash file generation. Details: " + e.getMessage());
+        }
+    }
 }

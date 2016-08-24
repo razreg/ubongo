@@ -147,7 +147,7 @@
       };
 
       $scope.cancelFlow = function() {
-        $http.post('rest/api/flows/' + $scope.selectedOption + '?action=cancel')
+        $http.post('rest/api/flows/' + $scope.selectedOption + '?action=cancel', {})
           .success(function() {
             displayMsg(true, 'A request to cancel flow was sent to the server', GOOD_STYLE);
           })
@@ -172,7 +172,7 @@
       };
 
       $scope.cancelTask = function() {
-        $http.post(getApiTaskActionPath('cancel'))
+        $http.post(getApiTaskActionPath('cancel'), {})
           .success(function() {
             displayMsg(true, 'A request to cancel task was sent to the server', GOOD_STYLE);
           })
@@ -182,7 +182,7 @@
       };
 
       $scope.resumeTask = function() {
-        $http.post(getApiTaskActionPath('resume'))
+        $http.post(getApiTaskActionPath('resume'), {})
           .success(function() {
             displayMsg(true, 'A request to resume task was sent to the server', GOOD_STYLE);
           })
@@ -192,7 +192,7 @@
       };
 
       $scope.killTask = function() {
-        $http.post(getApiTaskActionPath('stop'))
+        $http.post(getApiTaskActionPath('stop'), {})
           .success(function() {
             displayMsg(true, 'A request to stop task was sent to the server', GOOD_STYLE);
           })

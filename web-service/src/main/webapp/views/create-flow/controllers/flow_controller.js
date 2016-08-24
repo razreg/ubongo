@@ -53,7 +53,7 @@
       };
 
       function executeFlow(flowId) {
-        $http.post('rest/api/flows/' + flowId + '?action=run')
+        $http.post('rest/api/flows/' + flowId + '?action=run', {})
           .success(function() {
             showSubmitMsg('Flow sent for execution', GOOD_STYLE);
           })

@@ -5,15 +5,20 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ubongo.common.constants.SystemConstants;
 import ubongo.common.datatypes.*;
+import ubongo.common.datatypes.unit.Unit;
 import ubongo.persistence.Configuration;
 import ubongo.persistence.Persistence;
+import ubongo.persistence.UnitAdder;
 import ubongo.persistence.exceptions.PersistenceException;
 import ubongo.persistence.PersistenceImpl;
 import ubongo.server.exceptions.MachinesManagementException;
 
 import javax.xml.bind.UnmarshalException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +46,7 @@ public class ExecutionServer {
     private static QueueManager queueManager;
     private static ExecutionProxy executionProxy;
     private static Persistence persistence;
+    private static String unitsDirPath;
 
     public static void main(String[] args) {
         try {
@@ -53,7 +59,7 @@ public class ExecutionServer {
     private static void executionServerMain() {
         keepRunning = true;
         String configPath = System.getProperty(CONFIG_PATH);
-        String unitsDirPath = System.getProperty(UNITS_DIR_PATH);
+        unitsDirPath = System.getProperty(UNITS_DIR_PATH);
         String queriesPath = System.getProperty(QUERIES_PATH);
         if (!validSystemVariables(configPath, unitsDirPath, queriesPath)) return;
         try {
@@ -209,6 +215,9 @@ public class ExecutionServer {
                 case DEACTIVATE_MACHINE:
                     changeMachineActivityStatus(entityId, false);
                     break;
+                case GENERATE_BASH:
+                    generateBashFileForUnit(entityId);
+                    break;
             }
         } catch (Exception e) {
             logger.error("Server failed to handle request (id="
@@ -286,6 +295,26 @@ public class ExecutionServer {
         logger.info("Restarting server...");
         stop();
         executionServerMain();
+    }
+
+    private static void generateBashFileForUnit(int unitId) throws PersistenceException {
+        Map<Integer,Unit> allUnits = persistence.getAllUnits();
+        Unit unit = allUnits.get(unitId);
+        if (unit == null) {
+            throw new PersistenceException("Configuration file was not found for unit " + unitId);
+        }
+        String unitBashPath = Paths.get(unitsDirPath, Unit.getUnitBashFileName(unit.getId())).toString();
+        try {
+            UnitAdder.generateBashFile(unit, unitBashPath);
+        } catch (Exception e) {
+            try {
+                Files.deleteIfExists(Paths.get(unitBashPath));
+            } catch (IOException e1) {
+                // ignore
+            }
+            logger.error("Failed to generate bash file for unit " + unitId, e);
+            throw new PersistenceException(e.getMessage(), e);
+        }
     }
 
     private static void cleanup() throws PersistenceException {

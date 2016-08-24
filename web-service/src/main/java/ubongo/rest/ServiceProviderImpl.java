@@ -133,24 +133,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     @Override
-    public void generateBashFileForNewUnit(int unitId) throws PersistenceException {
-        Map<Integer,Unit> allUnits = getAllUnits();
-        if (!allUnits.containsValue(unitId)) {
-            throw new PersistenceException("Configuration file was not found for unit " + unitId);
-        }
-        Unit unit = allUnits.get(unitId);
-        String unitBashPath = Paths.get(unitsDirPath, Unit.getUnitBashFileName(unit.getId())).toString();
-        try {
-            UnitAdder.generateBashFile(unit, unitBashPath);
-        } catch (Exception e) {
-            try {
-                Files.deleteIfExists(Paths.get(unitBashPath));
-            } catch (IOException e1) {
-                // ignore
-            }
-            logger.error("Failed to generate bash file for unit " + unitId + ". Error: " + e.getMessage());
-            throw new PersistenceException(e.getMessage(), e);
-        }
+    public void generateBashFileForUnit(int unitId) throws PersistenceException {
+        ExecutionRequest request = new ExecutionRequest(unitId, ExecutionRequest.Action.GENERATE_BASH);
+        persistence.saveRequest(request);
     }
 
     @Override
