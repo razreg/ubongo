@@ -261,4 +261,18 @@ public interface Persistence {
      * @throws PersistenceException in case the insertion or deletion from the DB has failed.
      */
     void insertContextToTask(Task originalTask, List<Task> replacements) throws PersistenceException;
+
+    /**
+     * Performs a cleanup routine to the database, which deletes old requests
+     * and changes the status of 'Pending' tasks to 'New'
+     */
+    void performCleanup() throws PersistenceException;
+
+    /**
+     * Fetches all tasks from the database in status 'Processing'.
+     * This is used during server cleanup to stop any old task that might be processing.
+     * @return list of tasks in status 'Processing'.
+     * @throws PersistenceException if the query failed in the database.
+     */
+    List<Task> getProcessingTasks() throws PersistenceException;
 }

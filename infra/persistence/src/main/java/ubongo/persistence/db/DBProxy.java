@@ -124,6 +124,23 @@ public class DBProxy {
         return null;
     }
 
+    public Void performCleanup() throws DBProxyException {
+        connect();
+        String tasksTableName = getTableName(DBConstants.TASKS_TABLE_NAME);
+        String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
+        try {
+            String sql = queriesProvider.getQuery(DBConstants.QUERY_CLEANUP)
+                    .replace("$tasksTable", tasksTableName)
+                    .replace("$requestsTable", requestsTableName);
+            PreparedStatement statement = connection.prepareStatement(sql);
+            executeUpdate(statement);
+        } catch (SQLException e) {
+            String errorMsg = "Failed to cleanup the DB";
+            throw new DBProxyException(errorMsg, e);
+        }
+        return null;
+    }
+
     /**
      * updates the given task's status in the DB (based on id)
      * A task may not change from Processing to Pending (it must be cancelled or completed beforehand)
@@ -534,6 +551,10 @@ public class DBProxy {
             throw new DBProxyException("No task in the DB match the given id (" + id + ").");
         }
         return tasks.get(0);
+    }
+
+    public List<Task> getProcessingTasks() throws DBProxyException {
+        return getTasks(DBConstants.QUERY_GET_PROCESSING_TASKS);
     }
 
     public List<Task> getNewTasks() throws DBProxyException {

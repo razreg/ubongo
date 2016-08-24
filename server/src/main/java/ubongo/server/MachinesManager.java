@@ -70,17 +70,7 @@ public class MachinesManager {
     }
 
     public Machine getAvailableMachine() throws MachinesManagementException {
-        try {
-            machines = persistence.getAllMachines(false);
-        } catch (PersistenceException e) {
-            throw new MachinesManagementException("Failed to retrieve machines from DB.", e);
-        }
-        final Timestamp oldTime =
-                new Timestamp(new Date().getTime() - 1000 * SECONDS_BETWEEN_HEARTBEAT_CYCLES * 5);
-        List<Machine> machinesPool = machines.stream()
-                .filter(m -> m.isActive() && m.isConnected() &&
-                        m.getLastHeartbeat() != null && m.getLastHeartbeat().after(oldTime))
-                .collect(Collectors.toList());
+        List<Machine> machinesPool = getAvailableMachines();
         if (machinesPool.isEmpty()) {
             throw new MachinesManagementException("No available machines");
         }
@@ -93,5 +83,23 @@ public class MachinesManager {
             logger.debug(msg);
         }
         return selected;
+    }
+
+    private List<Machine> getAvailableMachines() throws MachinesManagementException {
+        try {
+            machines = persistence.getAllMachines(false);
+        } catch (PersistenceException e) {
+            throw new MachinesManagementException("Failed to retrieve machines from DB.", e);
+        }
+        final Timestamp oldTime =
+                new Timestamp(new Date().getTime() - 1000 * SECONDS_BETWEEN_HEARTBEAT_CYCLES * 5);
+        return machines.stream()
+                .filter(m -> m.isActive() && m.isConnected() &&
+                        m.getLastHeartbeat() != null && m.getLastHeartbeat().after(oldTime))
+                .collect(Collectors.toList());
+    }
+
+    public boolean isAvailable(int machineId) throws MachinesManagementException {
+        return getAvailableMachines().stream().filter(m -> m.getId() == machineId).count() > 0;
     }
 }

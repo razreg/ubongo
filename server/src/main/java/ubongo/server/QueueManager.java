@@ -81,11 +81,15 @@ public class QueueManager {
     }
 
     /**
-     * Shutdowns all threads used by the QueueManager.
+     * Shutdowns all threads used by the QueueManager and clear data-types.
      */
     public void stop() {
         producer.shutdownNow();
         consumers.shutdownNow();
+        queue.clear();
+        dependencyMap.clear();
+        taskIdsInCancel.clear();
+        setLocatorMap.clear();
     }
 
     /**

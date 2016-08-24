@@ -7,6 +7,7 @@ public class DBConstants {
 
     public final static String QUERY_GET_FLOW_TASKS = "get_flow_tasks";
     public final static String QUERY_GET_NEW_TASKS = "get_new_tasks";
+    public final static String QUERY_GET_PROCESSING_TASKS = "get_processing_tasks";
     public final static String QUERY_GET_TASK_BY_ID = "get_task_by_id";
     public final static String QUERY_GET_ALL_TASKS = "get_all_tasks";
     public final static String QUERY_GET_ANALYSIS_NAMES = "get_analysis_names";
@@ -29,6 +30,7 @@ public class DBConstants {
     public final static String QUERY_UPDATE_MACHINES = "update_machine";
     public final static String QUERY_CHANGE_MACHINE_ACTIVITY = "change_machine_activity";
     public final static String QUERY_INSERT_CONTEXT_TO_TASKS = "insert_context_to_tasks";
+    public final static String QUERY_CLEANUP = "cleanup";
 
     public final static String TASKS_TABLE_NAME = "tasks";
     public final static String TASKS_TASK_ID = "task_id";

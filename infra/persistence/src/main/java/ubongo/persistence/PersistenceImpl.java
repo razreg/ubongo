@@ -412,6 +412,16 @@ public class PersistenceImpl implements Persistence {
         throw new PersistenceException("Unknown reason"); // not possible
     }
 
+    @Override
+    public void performCleanup() throws PersistenceException {
+        new DBMethodInvoker<>(sqlExceptionHandler, dbProxy::performCleanup).invoke();
+    }
+
+    @Override
+    public List<Task> getProcessingTasks() throws PersistenceException {
+        return new DBMethodInvoker<>(sqlExceptionHandler, dbProxy::getProcessingTasks).invoke();
+    }
+
     public void clearDebugData() throws PersistenceException {
         new DBMethodInvoker<>(sqlExceptionHandler, dbProxy::clearAllDebugTables).invoke();
     }
