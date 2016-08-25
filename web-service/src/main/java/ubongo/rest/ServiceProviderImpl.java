@@ -1,7 +1,5 @@
 package ubongo.rest;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import ubongo.common.datatypes.*;
 import ubongo.common.datatypes.unit.Unit;
 import ubongo.persistence.Configuration;
@@ -9,23 +7,16 @@ import ubongo.persistence.Persistence;
 import ubongo.persistence.exceptions.PersistenceException;
 import ubongo.persistence.PersistenceImpl;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
 public class ServiceProviderImpl implements ServiceProvider {
 
-    private static Logger logger = LogManager.getLogger(ServiceProviderImpl.class);
-
     private Persistence persistence;
-    private String unitsDirPath;
 
     public ServiceProviderImpl(Configuration configuration, String unitSettingsDirPath,
                                String queriesPath, boolean debug) {
-        this.unitsDirPath = unitSettingsDirPath;
         persistence = new PersistenceImpl(unitSettingsDirPath,
                 configuration.getDbConnectionProperties(), configuration.getSshConnectionProperties(),
                 configuration.getMachines(), queriesPath, debug);

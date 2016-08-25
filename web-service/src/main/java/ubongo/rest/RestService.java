@@ -61,8 +61,9 @@ public final class RestService {
         }
         try {
             if (context == null) {
-                throw new UbongoHttpException(500,
-                        "Failed to retrieve servlet context. " + TOMCAT_CONTEXT_CONFIGURED);
+                String errMsg = "Failed to retrieve servlet context. " + TOMCAT_CONTEXT_CONFIGURED;
+                logger.fatal(errMsg);
+                throw new UbongoHttpException(500, errMsg);
             }
             String configPath = getContextParam("ubongo.config");
             String unitsPath = getContextParam("ubongo.units.dir");

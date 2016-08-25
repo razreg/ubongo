@@ -137,7 +137,7 @@ public class DBProxy {
                     .replace("$tasksTable", tasksTableName)
                     .replace("$requestsTable", requestsTableName);
             PreparedStatement statement = connection.prepareStatement(sql);
-            executeUpdate(statement);
+            executeUpdate(statement, false);
         } catch (SQLException e) {
             throw new DBProxyException("Failed to cleanup the DB", e);
         }
@@ -183,7 +183,7 @@ public class DBProxy {
                 statement.setNull(3, Types.INTEGER);
             }
             statement.setInt(4, task.getId()); // id of task to update
-            executeUpdate(statement);
+            executeUpdate(statement, false);
             if (logger.isInfoEnabled()) {
                 logger.info("Updated status in DB to " + task.getStatus() + " for task with id=" +
                         task.getId());
@@ -216,7 +216,7 @@ public class DBProxy {
                     .replace("$unitsTable", unitsTableName)
                     .replace("$values", values);
             PreparedStatement statement = connection.prepareStatement(sql);
-            executeUpdate(statement);
+            executeUpdate(statement, false);
             if (logger.isInfoEnabled()) {
                 logger.info("Saved analysis " + analysisName + " with " + units.size() + " units");
             }
@@ -299,7 +299,7 @@ public class DBProxy {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setBoolean(1, machine.isConnected());
             statement.setInt(2, machine.getId());
-            executeUpdate(statement);
+            executeUpdate(statement, false);
         } catch (SQLException e) {
             throw new DBProxyException("Failed to update machine in DB.", e);
         }
@@ -317,7 +317,7 @@ public class DBProxy {
                     .replace("$machinesTable", machinesTableName)
                     .replace("$values", values);
             PreparedStatement statement = connection.prepareStatement(sql);
-            executeUpdate(statement);
+            executeUpdate(statement, false);
             if (logger.isDebugEnabled()) {
                 logger.debug("Saved machines in the database");
             }
@@ -335,7 +335,7 @@ public class DBProxy {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setBoolean(1, activate);
             statement.setInt(2, machineId);
-            executeUpdate(statement);
+            executeUpdate(statement, false);
             if (logger.isInfoEnabled()) {
                 logger.info("Machine with id=" + machineId + " was set to " + (activate ? "" : "in") + "active");
             }
@@ -410,7 +410,7 @@ public class DBProxy {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, request.getStatus().toString());
             statement.setInt(2, request.getId());
-            executeUpdate(statement);
+            executeUpdate(statement, false);
             if (logger.isDebugEnabled()) {
                 logger.debug("Updated the status of request to " + request.getAction() + " for entityId="
                         + request.getEntityId() + " to status=" + request.getStatus());
@@ -431,7 +431,7 @@ public class DBProxy {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, request.getEntityId());
             statement.setString(2, request.getAction().toString());
-            executeUpdate(statement);
+            executeUpdate(statement, false);
             if (logger.isDebugEnabled()) {
                 logger.debug("Request to " + request.getAction() + " for entityId="
                         + request.getEntityId() + " was stored to the DB");
@@ -462,7 +462,7 @@ public class DBProxy {
             statement.setString(1, context.getStudy());
             statement.setString(2, context.getSubject());
             statement.setString(3, context.getRun());
-            executeUpdate(statement);
+            executeUpdate(statement, false);
             ResultSet results = statement.getGeneratedKeys();
             results.next();
             int flowId = results.getInt(1);
@@ -482,7 +482,7 @@ public class DBProxy {
             PreparedStatement statement =
                     connection.prepareStatement(sql);
             statement.setInt(1, flowId);
-            int affectedRows = executeUpdate(statement);
+            int affectedRows = executeUpdate(statement, false);
             if (affectedRows <= 0) {
                 throw new DBProxyException("Failed to start flow: there were no tasks in status 'CREATED' in flow=" + flowId);
             }
@@ -557,7 +557,7 @@ public class DBProxy {
             PreparedStatement statement =
                     connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setInt(1, originalTask.getId());
-            executeUpdate(statement);
+            executeUpdate(statement, false);
         } catch (SQLException e) {
             throw new DBProxyException("Failed to add tasks to DB.", e);
         }
@@ -617,7 +617,7 @@ public class DBProxy {
                     .replace("$tasksTable", tableName);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, taskId);
-            executeUpdate(statement);
+            executeUpdate(statement, false);
         } catch (SQLException e) {
             throw new DBProxyException("Failed to resume task (taskId=" + taskId + ").", e);
         }
@@ -636,7 +636,7 @@ public class DBProxy {
                     .replace("$unitsTable", unitsTableName);
             PreparedStatement statement =
                     connection.prepareStatement(sql);
-            executeUpdate(statement);
+            executeUpdate(statement, true);
         } catch (SQLException e) {
             throw new DBProxyException("Failed to clear debug tables.", e);
         }
@@ -759,7 +759,7 @@ public class DBProxy {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, status.toString());
             statement.setInt(2, flowId);
-            executeUpdate(statement);
+            executeUpdate(statement, false);
         } catch (SQLException e) {
             String errorMsg = "Failed to update flow's status in DB (flowId="
                     + flowId + ", newStatus=" + status + ")";
@@ -943,8 +943,8 @@ public class DBProxy {
         return statement.executeQuery();
     }
 
-    private int executeUpdate(PreparedStatement statement) throws SQLException {
-        if (logger.isDebugEnabled()) {
+    private int executeUpdate(PreparedStatement statement, boolean logIt) throws SQLException {
+        if (logIt && logger.isDebugEnabled()) {
             int startIndex = statement.toString().indexOf(':') + 2;
             logger.debug("Executing update: " + statement.toString().substring(startIndex));
         }

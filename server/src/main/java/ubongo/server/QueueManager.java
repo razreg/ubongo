@@ -433,7 +433,7 @@ public class QueueManager {
                 taskSet.add(task);
                 dependencyMap.put(dependencyKey.getId(), taskSet);
                 if (logger.isDebugEnabled()) {
-                    logger.debug(taskSet.size() + " tasks were found to be depending on the completion of task with id="
+                    logger.debug(taskSet.size() + " task(s) were found to be depending on the completion of task with id="
                             + task.getId() + " from flow with id=" + task.getFlowId());
                 }
             }

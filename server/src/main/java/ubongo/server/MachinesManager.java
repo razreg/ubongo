@@ -48,7 +48,7 @@ public class MachinesManager {
             machinesCopy.forEach(m -> sb.append(Utils.concatStrings("\tID=[",
                         m.getId(),"] Host=[",
                         m.getHost(), "], Description=[",
-                        m.getDescription(), "]")));
+                        m.getDescription(), "]\n")));
             logger.info(sb.toString());
         }
         persistence.saveMachines(machinesCopy);
