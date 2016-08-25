@@ -1,10 +1,23 @@
 #!/bin/sh
 
-# usage: sh ubongo-machine.sh <server-host-name> <start|stop>
-#   e.g. sh ubongo-machine.sh rack-hezi-03 start
-#        sh ubongo-machine.sh stop
+# usage: sh ubongo-machine <server-host-name> <start|stop>
+#   e.g. sh ubongo-machine rack-hezi-03 start
+#        sh ubongo-machine stop
+
+
+# Verify usage
+USAGE_START="sh ubongo-machine <server-host-name> start"
+USAGE_STOP="sh ubongo-machine stop"
+
+if [ -z "$1" ]; then
+    echo "Usage: "
+    echo "$USAGE_START"
+    echo "$USAGE_STOP"
+    exit 1
+fi
 
 # Find the script directory DIR
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
   DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -14,37 +27,18 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 SERVICE_NAME=UbongoMachine
-SERVER=$1
 BASE="$DIR"/..
-LOG_DIR="$BASE"/../logs
+LOG_DIR="$BASE"/../logs/
 CONF_PATH="$BASE"/../config/ubongo-config.xml
 UNITS_PATH="$BASE"/../units/
+WORKSPACE_PATH="$BASE"/../workspace/
 QUERIES_PATH="$BASE"/../db/queries.properties
 LOG_CONFIG="$BASE"/config/log4j2.xml
 PATH_TO_JAR="$BASE"/ubongo-machine.jar
 PID_PATH_NAME="$BASE"/ubongo-machine-pid
 
-case $2 in
-    start)
-        echo "Starting $SERVICE_NAME ..."
-        if [ ! -f $PID_PATH_NAME ]; then
-            echo "Using SERVER = $SERVER"
-            echo "Using PATH_TO_JAR = $PATH_TO_JAR"
-            echo "Using LOG_DIR = $LOG_DIR"
-            echo "Using CONF_PATH = $CONF_PATH"
-            echo "Using UNITS_PATH = $UNITS_PATH"
-            echo "Using QUERIES_PATH = $QUERIES_PATH"
-            echo "Using LOG_CONFIG = $LOG_CONFIG"
-            nohup java -Dbase_dir=$BASE/.. -Dserver=$SERVER -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH \
-            -Dlog4j.configurationFile=$LOG_CONFIG -Dunits_dir=$UNITS_PATH -Dqueries=$QUERIES_PATH \
-            -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
-                        echo $! > $PID_PATH_NAME
-            echo "$SERVICE_NAME started ..."
-        else
-            echo "$SERVICE_NAME is already running ..."
-        fi
-    ;;
-    stop)
+
+if [ "$1" == "stop" ]; then
         if [ -f $PID_PATH_NAME ]; then
             PID=$(cat $PID_PATH_NAME);
             echo "$SERVICE_NAME stoping ..."
@@ -54,5 +48,49 @@ case $2 in
         else
             echo "$SERVICE_NAME is not running ..."
         fi
-    ;;
-esac
+else
+        # Verify usage
+
+        # Verify usage for "Start" command
+        if [ -z "$2" ]; then
+            if [[ "$1" != "start" ]]; then
+                echo "Usage: "
+                echo "$USAGE_START"
+                echo "$USAGE_STOP"
+                exit 1
+            else
+                echo "Usage: "
+                echo "$USAGE_START"
+                exit 1
+            fi
+        fi
+        if [[ "$2" != "start" ]]; then
+                echo "Usage: "
+                echo "$USAGE_START"
+                echo "$USAGE_STOP"
+                exit 1
+        fi
+
+
+        SERVER=$1
+        echo "Starting $SERVICE_NAME ..."
+        if [ ! -f $PID_PATH_NAME ]; then
+            echo "Using SERVER = $SERVER"
+            echo "Using PATH_TO_JAR = $PATH_TO_JAR"
+            echo "Using LOG_DIR = $LOG_DIR"
+            echo "Using CONF_PATH = $CONF_PATH"
+            echo "Using UNITS_PATH = $UNITS_PATH"
+            BASH_DIRECTORY="$UNITS_PATH"bashTmp
+            mkdir -p $BASH_DIRECTORY
+            echo "Using WORKSPACE_PATH = $WORKSPACE_PATH"
+            echo "Using QUERIES_PATH = $QUERIES_PATH"
+            echo "Using LOG_CONFIG = $LOG_CONFIG"
+            nohup java -Dserver=$SERVER -Dworkspace=$WORKSPACE_PATH -Dlog_directory=$LOG_DIR -Dconfig=$CONF_PATH \
+            -Dlog4j.configurationFile=$LOG_CONFIG -Dunits_dir=$UNITS_PATH -Dqueries=$QUERIES_PATH \
+            -jar $PATH_TO_JAR >> "$LOG_DIR"executionScript.out 2>> "$LOG_DIR"executionScript.out &
+                        echo $! > $PID_PATH_NAME
+            echo "$SERVICE_NAME started ..."
+        else
+            echo "$SERVICE_NAME is already running ..."
+        fi
+fi

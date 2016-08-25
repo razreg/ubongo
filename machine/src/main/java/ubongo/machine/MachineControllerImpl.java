@@ -22,17 +22,19 @@ public class MachineControllerImpl implements MachineController {
     private int unitId;
 
     @Override
-    public boolean run(Task task, Path unitsDir, Path baseDir, String machineWorkspaceDir) throws InterruptedException {
+    public boolean run(Task task, Path unitsDir, String machineWorkspaceDir) throws InterruptedException {
         taskStudy = task.getContext().getStudy();
         unitId = task.getUnit().getId();
-        Path outputDirectory = Paths.get(baseDir.toString(), machineWorkspaceDir, task.getId() + MachineConstants.OUTPUT_DIR_SUFFIX);
-        logger.debug("[Study = " + taskStudy + "] [Unit = " + unitId + "] outputDir= " + outputDirectory);
+        Path outputDirectory = Paths.get(machineWorkspaceDir, task.getId() + MachineConstants.OUTPUT_DIR_SUFFIX);
+        logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] outputDir= " + outputDirectory);
 
         Runtime runtime = Runtime.getRuntime();
-        String[] command = getProcessCommand(task, baseDir, outputDirectory, machineWorkspaceDir);
+        String[] command = getProcessCommand(task, outputDirectory, machineWorkspaceDir);
         Process p = null;
         try {
             boolean done = false;
+            logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Executing unit Bash (and Matlabs that will be generated during execution)..." +
+                    "\nWait for log updates when execution completed.");
             p = runtime.exec(command, null, new File(unitsDir.toString()));
             while (!done) {
                 handleStopInterrupt(task);
@@ -103,9 +105,9 @@ public class MachineControllerImpl implements MachineController {
         return builder.toString();
     }
 
-    private String[] getProcessCommand(Task task, Path baseDir, Path outputDirectory, String machineWorkspaceDir) {
+    private String[] getProcessCommand(Task task, Path outputDirectory, String machineWorkspaceDir) {
         String inputDir = Paths.get(machineWorkspaceDir, task.getId() + MachineConstants.INPUT_DIR_SUFFIX).toString();
-        Path inputDirectory = Paths.get(baseDir.toString(), inputDir);
+        Path inputDirectory = Paths.get(inputDir);
         String unitExecutable = Unit.getUnitBashFileName(task.getUnit().getId());
         List<UnitParameter> params = task.getUnit().getParameters();
         int paramsNum = 1 + 2 + params.size();

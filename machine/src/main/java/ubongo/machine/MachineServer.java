@@ -33,6 +33,7 @@ public class MachineServer {
     private static Configuration configuration;
     private static String serverAddress;
     private static String unitsDir;
+    private static String workspace;
     private static String queriesPath;
     private static ScheduledExecutorService heartbeatScheduler = Executors.newScheduledThreadPool(1);
 
@@ -71,12 +72,17 @@ public class MachineServer {
 
     private static boolean initSystemPropertyObjects() {
         unitsDir = System.getProperty(MachineConstants.ARG_UNITS);
+        workspace = System.getProperty(MachineConstants.ARG_WORKSPACE);
         String configPath = System.getProperty(MachineConstants.ARG_CONFIG_PATH);
         queriesPath = System.getProperty(MachineConstants.ARG_QUERIES_PATH);
         boolean ret = true;
         if (unitsDir == null) {
             logger.error("Please supply units directory path as run parameter: -D" +
                     MachineConstants.ARG_UNITS + "=<path>");
+            ret = false;
+        } else if (workspace == null) {
+            logger.error("Please supply path to a workspace directory as run parameter: -D" +
+                    MachineConstants.ARG_QUERIES_PATH + "=<path>");
             ret = false;
         } else if (queriesPath == null) {
             logger.error("Please supply path to queries.properties as run parameter: -D" +
@@ -110,13 +116,12 @@ public class MachineServer {
                 try {
                     RabbitData message = RabbitData.fromBytes(body);
                     logger.info(" ["+actionSign+"] Received '" + message.getMessage() + "'");
-                    String baseDir = System.getProperty(MachineConstants.ARG_DIR);
                     String unitsDir = System.getProperty(MachineConstants.ARG_UNITS);
                     serverAddress = System.getProperty(MachineConstants.ARG_SERVER);
-                    logger.info("Server address: [" + serverAddress + "], base directory path: [" + baseDir + "] , units directory path: [" + unitsDir + "]");
+                    logger.info("Server address: [" + serverAddress + "] , units directory path: [" + unitsDir + "]");
                     String threadName = getThreadName(message.getTask());
                     RequestHandler requestHandler =
-                            new RequestHandler(threadName, message, serverAddress, baseDir, unitsDir, configuration);
+                            new RequestHandler(threadName, message, serverAddress, unitsDir, configuration, workspace);
                     if ((message.getMessage()).equals(MachineConstants.BASE_UNIT_REQUEST)) {
                         unitThreads.put(threadName, requestHandler);
                     }
