@@ -18,10 +18,9 @@ public interface MachineController {
      * @param task is the task for which the running request was sent.
      *             It includes all the settings the specific unit may require to run.
      * @param unitsDir is the directory where the unit files are stored on the machine
-     * @param baseDir is the directory where the machine jar is located
      * @param machineWorkspaceDir is a directory where the machine will use to store temporary files
      * @return true iff run ended successfully
      */
-    boolean run(Task task, Path unitsDir, Path baseDir, String machineWorkspaceDir) throws InterruptedException;
+    boolean run(Task task, Path unitsDir, String machineWorkspaceDir) throws InterruptedException;
 
 }

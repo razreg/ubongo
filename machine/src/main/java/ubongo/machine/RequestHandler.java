@@ -29,8 +29,8 @@ public class RequestHandler extends Thread {
     private static Logger logger = LogManager.getLogger(RequestHandler.class);
     private static Configuration configuration;
 
-    private String baseDir; // The root directory where the files should be stored
-    private String unitsDir; // The directory where the units should be stored, related to the base dir
+    private String unitsDir; // The directory where the units should be stored
+    private String workspaceDir; // The directory where tmp run files should be stored
     private String serverAddress; // Address of the program server
     private RabbitData rabbitMessage;
 
@@ -42,29 +42,28 @@ public class RequestHandler extends Thread {
     private int unitId = 0;
 
     public RequestHandler(String threadName, RabbitData rabbitMessage, String serverAddress,
-                          String baseDir, String unitsDir, Configuration config) {
+                          String unitsDir, Configuration config, String workspaceDir) {
         super(threadName);
-        this.baseDir = baseDir;
         this.unitsDir = unitsDir;
+        this.workspaceDir = workspaceDir;
         this.serverAddress = serverAddress;
         this.rabbitMessage = rabbitMessage;
         configuration = config;
-        logger.info("serverAddress = [" + serverAddress + "] baseDir = [" + baseDir + "] " +
+        logger.info("serverAddress = [" + serverAddress + "] " +
                     "unitsDir = [" + unitsDir + "] message = [" + rabbitMessage.getMessage() + "]");
     }
 
     @Override
     public void run() {
         try {
-            String machineWorkDir = configuration.getUnitsMainProperties().getMachineWorkspaceDir();
             this.task = rabbitMessage.getTask();
             this.taskStudy = task.getContext().getStudy();
             this.unitId = task.getUnit().getId();
             logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Parsed request = [" + rabbitMessage.getMessage() + " " + task.getId() + "]");
             if (rabbitMessage.getMessage().equals(MachineConstants.BASE_UNIT_REQUEST)) {
-                this.tmpOutputFilesDir = Paths.get(this.baseDir, machineWorkDir, task.getId() + MachineConstants.OUTPUT_DIR_SUFFIX).toString();
-                this.tmpInputFilesDir = Paths.get(this.baseDir, machineWorkDir, task.getId() + MachineConstants.INPUT_DIR_SUFFIX).toString();
-                handleBaseUnitRequest(machineWorkDir);
+                this.tmpOutputFilesDir = Paths.get(workspaceDir, task.getId() + MachineConstants.OUTPUT_DIR_SUFFIX).toString();
+                this.tmpInputFilesDir = Paths.get(workspaceDir, task.getId() + MachineConstants.INPUT_DIR_SUFFIX).toString();
+                handleBaseUnitRequest(workspaceDir);
                 removeThreadFromCollection();
             } else if (rabbitMessage.getMessage().equals(MachineConstants.KILL_TASK_REQUEST)) {
                 handleKillRequest();
@@ -143,7 +142,7 @@ public class RequestHandler extends Thread {
         SftpManager filesClient = null;
         try {
             filesClient = new SftpManager(configuration.getSshConnectionProperties(), serverAddress,
-                    filesSourceDir, tmpInputFilesDir);
+                    filesSourceDir, tmpInputFilesDir, task);
             filesClient.getFilesFromServer();
         } catch (NetworkException e) {
             logger.error("[Study = " + taskStudy + "] [Unit = " + unitId + "] Failed receiving files from server " + e.getMessage(), e);
@@ -193,7 +192,7 @@ public class RequestHandler extends Thread {
         }
         handleStopInterrupt();
         MachineController machineController = new MachineControllerImpl();
-        boolean success = machineController.run(task, Paths.get(unitsDir), Paths.get(baseDir), machineWorkspaceDir);
+        boolean success = machineController.run(task, Paths.get(unitsDir), machineWorkspaceDir);
         if (success){
             handleStopInterrupt();
             // need to send the output files to the server.
@@ -256,7 +255,7 @@ public class RequestHandler extends Thread {
         try {
             handleStopInterrupt();
             filesUploader = new SftpManager(configuration.getSshConnectionProperties(), serverAddress,
-                    task.getOutputPath(), tmpOutputFilesDir);
+                    task.getOutputPath(), tmpOutputFilesDir, task);
             handleStopInterrupt();
             filesUploader.uploadFilesToServer();
         } catch (NetworkException e) {
