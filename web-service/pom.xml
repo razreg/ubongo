@@ -48,6 +48,9 @@
             </resource>
             <resource>
                 <directory>../data</directory>
+                <excludes>
+                    <exclude>logs</exclude>
+                </excludes>
             </resource>
             <resource>
                 <directory>../infra/persistence/src/main/resources</directory>

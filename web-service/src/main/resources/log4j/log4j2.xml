@@ -2,8 +2,8 @@
 <Configuration>
 
     <Properties>
-        <Property name="moduleName">service</Property>
-        <Property name="baseDir">${sys:log_directory:-logs}</Property>
+        <Property name="moduleName">ubongo-service</Property>
+        <Property name="baseDir">${sys:log_directory:-../logs/ubongo}</Property>
     </Properties>
 
     <Appenders>

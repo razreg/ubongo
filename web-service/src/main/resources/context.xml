@@ -2,11 +2,11 @@
 <Context reloadable="true" privileged="true">
     <WatchedResource>WEB-INF/web.xml</WatchedResource>
     <Parameter name="ubongo.config" override="false"
-               value="${catalina.base}/webapps/ROOT/WEB-INF/classes/config/ubongo-config.xml" />
+               value="${catalina.base}/webapps/ubongo/WEB-INF/classes/config/ubongo-config.xml" />
     <Parameter name="ubongo.units.dir" override="false"
-               value="${catalina.base}/webapps/ROOT/WEB-INF/classes/units" />
+               value="${catalina.base}/webapps/ubongo/WEB-INF/classes/units" />
     <Parameter name="ubongo.db.queries" override="false"
-               value="${catalina.base}/webapps/ROOT/WEB-INF/classes/db/queries.properties" />
+               value="${catalina.base}/webapps/ubongo/WEB-INF/classes/db/queries.properties" />
     <Parameter name="ubongo.query.limit.default" override="false"
                value="1000" />
 </Context>
