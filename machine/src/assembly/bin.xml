@@ -24,6 +24,7 @@
                 <include>ubongo-machine*</include>
             </includes>
             <lineEnding>unix</lineEnding>
+            <fileMode>0777</fileMode>
         </fileSet>
         <fileSet>
             <directory>target</directory>

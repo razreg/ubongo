@@ -9,6 +9,11 @@ public class UbongoHttpException extends Exception {
         status = statusCode;
     }
 
+    public UbongoHttpException(int statusCode, String message, Throwable t) {
+        super(message, t);
+        status = statusCode;
+    }
+
     public int getStatus() {
         return status;
     }

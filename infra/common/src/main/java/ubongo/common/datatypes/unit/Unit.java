@@ -22,7 +22,6 @@ import java.util.Map;
 public class Unit implements Serializable, Cloneable {
 
     private static Logger logger = LogManager.getLogger(Unit.class);
-    private static final int BASE_PARAMS = 3;
 
     @XmlElement
     private String name;

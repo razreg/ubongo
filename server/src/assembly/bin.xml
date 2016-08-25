@@ -31,6 +31,7 @@
                 <include>*</include>
             </includes>
             <lineEnding>unix</lineEnding>
+            <fileMode>0777</fileMode>
         </fileSet>
         <fileSet>
             <directory>../infra/persistence/src/main/resources/db</directory>
@@ -50,6 +51,7 @@
                 <include>ubongo-server*</include>
             </includes>
             <lineEnding>unix</lineEnding>
+            <fileMode>0777</fileMode>
         </fileSet>
         <fileSet>
             <directory>target</directory>

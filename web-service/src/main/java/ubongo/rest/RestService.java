@@ -61,27 +61,27 @@ public final class RestService {
         }
         try {
             if (context == null) {
-                String errMsg = "Failed to retrieve servlet context. " + TOMCAT_CONTEXT_CONFIGURED;
-                logger.fatal(errMsg);
-                throw new UbongoHttpException(500, errMsg);
+                logAndWrapException(500, "Failed to retrieve servlet context. " + TOMCAT_CONTEXT_CONFIGURED);
             }
             String configPath = getContextParam("ubongo.config");
             String unitsPath = getContextParam("ubongo.units.dir");
             String queriesPath = getContextParam("ubongo.db.queries");
-            Configuration configuration;
+            Configuration configuration = null;
             try {
                 configuration = Configuration.loadConfiguration(configPath);
             } catch (UnmarshalException e) {
-                throw new UbongoHttpException(500, FAILURE_MSG);
+                logAndWrapException(500, FAILURE_MSG, e);
             }
-            serviceProvider = new ServiceProviderImpl(configuration, unitsPath, queriesPath, configuration.getDebug());
+            if (configuration != null) {
+                serviceProvider = new ServiceProviderImpl(configuration, unitsPath, queriesPath, configuration.getDebug());
+            }
             serviceProvider.start();
         } catch (UbongoHttpException e) {
             serviceProvider = null;
             throw e;
         } catch (Exception e) {
-            throw new UbongoHttpException(500,
-                    "The service has encountered an unexpected exception during initialization. Details: " + e.getMessage());
+            logAndWrapException(500,
+                    "The service has encountered an unexpected exception during initialization", e);
         }
         finally {
             serviceProviderInitAttempted = true;
@@ -102,7 +102,7 @@ public final class RestService {
     private String getContextParam(String paramName) throws UbongoHttpException {
         String value = context.getInitParameter(paramName);
         if (value == null) {
-            throw new UbongoHttpException(500,
+            logAndWrapException(500,
                     paramName + " could not be found in Tomcat context. " + TOMCAT_CONTEXT_CONFIGURED);
         }
         return value;
@@ -121,17 +121,17 @@ public final class RestService {
     public String getAllMachines() throws UbongoHttpException {
         init();
         ObjectMapper mapper = new ObjectMapper();
-        String response;
+        String response = "[]";
         try {
             List<Machine> machines = serviceProvider.getAllMachines();
             if (machines == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve machines.");
+                logAndWrapException(500, "Failed to retrieve machines.");
             }
             response = mapper.writeValueAsString(machines);
         } catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize machines to JSON.");
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to retrieve machines from DB.");
+            logAndWrapException(500, "Failed to serialize machines to JSON.", e);
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to retrieve machines from DB.", e);
         }
         return response;
     }
@@ -146,22 +146,22 @@ public final class RestService {
         init();
         if (activate) {
             if (deactivate) {
-                throw new UbongoHttpException(400, "Received a POST request to machines/"
+                logAndWrapException(400, "Received a POST request to machines/"
                         + machineId + " with both activate and deactivate query params turned on. Please choose only one.");
             }
             try {
                 serviceProvider.changeMachineActivityStatus(machineId, true);
-            } catch (PersistenceException e) {
-                throw new UbongoHttpException(500, "Failed to send activation request for machine with ID=" + machineId);
+            } catch (Exception e) {
+                logAndWrapException(500, "Failed to send activation request for machine with ID=" + machineId, e);
             }
         } else if (deactivate) {
             try {
                 serviceProvider.changeMachineActivityStatus(machineId, false);
-            } catch (PersistenceException e) {
-                throw new UbongoHttpException(500, "Failed to send deactivation request for machine with ID=" + machineId);
+            } catch (Exception e) {
+                logAndWrapException(500, "Failed to send deactivation request for machine with ID=" + machineId, e);
             }
         } else {
-            throw new UbongoHttpException(400, "Received a POST request to machines/"
+            logAndWrapException(400, "Received a POST request to machines/"
                     + machineId + " without any query param. Please send query param 'activate' or 'deactivate'.");
         }
     }
@@ -172,17 +172,17 @@ public final class RestService {
     public String getAnalysis(@PathParam("analysisName") String analysisName) throws UbongoHttpException {
         init();
         ObjectMapper mapper = new ObjectMapper();
-        String response;
+        String response = "[]";
         try {
             List<Unit> units = serviceProvider.getAnalysis(analysisName);
             if (units == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve analysis from DB.");
+                logAndWrapException(500, "Failed to retrieve analysis from DB.");
             }
             response = mapper.writeValueAsString(units);
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to read analysis from DB. Details: " + e.getMessage());
         } catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize analysis units to JSON.");
+            logAndWrapException(500, "Failed to serialize analysis units to JSON.", e);
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to read analysis from DB.", e);
         }
         return response;
     }
@@ -193,22 +193,22 @@ public final class RestService {
     public String getAllAnalysisNames(@DefaultValue("false") @QueryParam("names") boolean names,
                                       @QueryParam("limit") int limit) throws UbongoHttpException {
         if (!names) {
-            throw new UbongoHttpException(500, "Invalid request: names=true must be set.");
+            logAndWrapException(500, "Invalid request: names=true must be set.");
         }
         init();
         ObjectMapper mapper = new ObjectMapper();
-        String response;
+        String response = "[]";
         try {
             List<String> analysisNames =
                     serviceProvider.getAllAnalysisNames(limit > 0 ? limit : defaultQueryLimit);
             if (analysisNames == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve analysis names from DB.");
+                logAndWrapException(500, "Failed to retrieve analysis names from DB.");
             }
             response = mapper.writeValueAsString(analysisNames);
         } catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize analysis names to JSON.");
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to read analysis names from DB. Details: " + e.getMessage());
+            logAndWrapException(500, "Failed to serialize analysis names to JSON.", e);
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to read analysis names from DB.", e);
         }
         return response;
     }
@@ -219,29 +219,29 @@ public final class RestService {
     @Produces(MediaType.APPLICATION_JSON)
     public void createAnalysis(String requestBody) throws UbongoHttpException {
         init();
-        String analysisName;
-        List<Unit> units;
+        String analysisName = null;
+        List<Unit> units = null;
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode jsonNode = mapper.readTree(requestBody);
             if (jsonNode.hasNonNull("analysisName")) {
                 analysisName = jsonNode.get("analysisName").asText();
             } else {
-                throw new UbongoHttpException(400, "Analysis name cannot be empty nor null.");
+                logAndWrapException(400, "Analysis name cannot be empty nor null.");
             }
             if (jsonNode.hasNonNull("units")) {
                 units = mapper.readValue(jsonNode.get("units").toString(),
                         new TypeReference<List<Unit>>() {
                         });
             } else {
-                throw new UbongoHttpException(400, "Analysis must contain at least one unit.");
+                logAndWrapException(400, "Analysis must contain at least one unit.");
             }
             serviceProvider.createAnalysis(analysisName, units);
         } catch (IOException e) {
-            throw new UbongoHttpException(400, "The request is malformed - expected array of unit objects but received: "
-                    + requestBody);
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to create analysis in the DB");
+            logAndWrapException(400, "The request is malformed - expected array of unit objects but received: "
+                    + requestBody, e);
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to create analysis in the DB", e);
         }
     }
 
@@ -251,17 +251,17 @@ public final class RestService {
     public String getAllFlows(@QueryParam("limit") int limit) throws UbongoHttpException {
         init();
         ObjectMapper mapper = new ObjectMapper();
-        String response;
+        String response = "[]";
         try {
             List<FlowData> flows = serviceProvider.getAllFlows(limit > 0 ? limit : defaultQueryLimit);
             if (flows == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve flows from DB.");
+                logAndWrapException(500, "Failed to retrieve flows from DB.");
             }
             response = mapper.writeValueAsString(flows);
         } catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize flows to JSON.");
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to read flows from DB. Details: " + e.getMessage());
+            logAndWrapException(500, "Failed to serialize flows to JSON.", e);
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to read flows from DB.", e);
         }
         return response;
     }
@@ -272,9 +272,9 @@ public final class RestService {
     @Produces(MediaType.APPLICATION_JSON)
     public String createFlow(String requestBody) throws UbongoHttpException {
         init();
-        int flow;
-        ubongo.common.datatypes.Context context;
-        List<Task> tasks;
+        int flow = -1;
+        ubongo.common.datatypes.Context context = null;
+        List<Task> tasks = null;
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode jsonNode = mapper.readTree(requestBody);
@@ -282,19 +282,19 @@ public final class RestService {
                 context = mapper.readValue(jsonNode.get("context").toString(),
                         new TypeReference<ubongo.common.datatypes.Context>(){});
             } else {
-                throw new UbongoHttpException(400, "Study name for flow cannot be empty nor null.");
+                logAndWrapException(400, "Study name for flow cannot be empty nor null.");
             }
             if (jsonNode.hasNonNull("tasks")) {
                 tasks = mapper.readValue(jsonNode.get("tasks").toString(),
                         new TypeReference<List<Task>>(){});
             } else {
-                throw new UbongoHttpException(400, "Flow must contain at least one task.");
+                logAndWrapException(400, "Flow must contain at least one task.");
             }
             flow = serviceProvider.createFlow(context, tasks);
         } catch (IOException e) {
-            throw new UbongoHttpException(500, "Failed to deserialize JSON to FlowData.");
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to create flow in DB. Details: " + e.getMessage());
+            logAndWrapException(500, "Failed to deserialize JSON to FlowData.", e);
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to create flow in DB.", e);
         }
         return "{\"flowId\": \"" + flow + "\"}";
     }
@@ -310,19 +310,19 @@ public final class RestService {
             case CANCEL:
                 try {
                     serviceProvider.cancelFlow(flowId);
-                } catch (PersistenceException e) {
-                    throw new UbongoHttpException(500, "Failed to cancel flow. Details: " + e.getMessage());
+                } catch (Exception e) {
+                    logAndWrapException(500, "Failed to cancel flow.", e);
                 }
                 break;
             case RUN:
                 try {
                     serviceProvider.runFlow(flowId);
-                } catch (PersistenceException e) {
-                    throw new UbongoHttpException(500, "Failed to run flow. Details: " + e.getMessage());
+                } catch (Exception e) {
+                    logAndWrapException(500, "Failed to run flow.", e);
                 }
                 break;
             default:
-                throw new UbongoHttpException(405, "Unsupported action on flow (" + action.name() + ").");
+                logAndWrapException(405, "Unsupported action on flow (" + action.name() + ").");
         }
     }
 
@@ -332,17 +332,17 @@ public final class RestService {
     public String getAllTasks(@QueryParam("limit") int limit) throws UbongoHttpException {
         init();
         ObjectMapper mapper = new ObjectMapper();
-        String response;
+        String response = "[]";
         try {
             List<Task> tasks = serviceProvider.getAllTasks(limit > 0 ? limit : defaultQueryLimit);
             if (tasks == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve tasks from DB.");
+                logAndWrapException(500, "Failed to retrieve tasks from DB.");
             }
             response = mapper.writeValueAsString(tasks);
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to read tasks from DB. Details: " + e.getMessage());
         } catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize tasks to JSON.");
+            logAndWrapException(500, "Failed to serialize tasks to JSON.", e);
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to read tasks from DB.", e);
         }
         return response;
     }
@@ -356,18 +356,18 @@ public final class RestService {
             throw new UbongoHttpException(400, "Flow ID must be a positive integer.");
         }
         ObjectMapper mapper = new ObjectMapper();
-        String response;
+        String response = "[]";
         try {
             List<Task> tasks = serviceProvider.getTasks(flowId);
             if (tasks == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve tasks.");
+                logAndWrapException(500, "Failed to retrieve tasks.");
             }
             response = mapper.writeValueAsString(tasks);
         }
         catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize tasks to JSON.");
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to read tasks from DB. Details: " + e.getMessage());
+            logAndWrapException(500, "Failed to serialize tasks to JSON.", e);
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to read tasks from DB.", e);
         }
         return response;
     }
@@ -380,39 +380,40 @@ public final class RestService {
                                     @QueryParam("action") ResourceAction action)
             throws UbongoHttpException {
         init();
-        Task task;
+        Task task = null;
         try {
             task = serviceProvider.getTask(taskId);
         } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to retrieve task from DB. Details: " + e.getMessage());
+            logAndWrapException(500, "Failed to retrieve task from DB.", e);
         }
-        if (task.getFlowId() != flowId) {
-            throw new UbongoHttpException(400, "The taskId does not match the flowId.");
+        if (task == null || task.getFlowId() != flowId) {
+            // task cannot be null at this point
+            logAndWrapException(400, "The taskId does not match the flowId.");
         }
         switch (action) {
             case CANCEL:
                 try {
                     serviceProvider.cancelTask(task);
-                } catch (PersistenceException e) {
-                    throw new UbongoHttpException(500, "Failed to cancel tasks. Details: " + e.getMessage());
+                } catch (Exception e) {
+                    logAndWrapException(500, "Failed to cancel tasks.", e);
                 }
                 break;
             case RESUME:
                 try {
                     serviceProvider.resumeTask(task);
-                } catch (PersistenceException e) {
-                    throw new UbongoHttpException(500, "Failed to resume task. Details: " + e.getMessage());
+                } catch (Exception e) {
+                    logAndWrapException(500, "Failed to resume task.", e);
                 }
                 break;
             case STOP:
                 try {
                     serviceProvider.killTask(task);
-                } catch (PersistenceException e) {
-                    throw new UbongoHttpException(500, "Failed to stop task. Details: " + e.getMessage());
+                } catch (Exception e) {
+                    logAndWrapException(500, "Failed to stop task.", e);
                 }
                 break;
             default:
-                throw new UbongoHttpException(405, "Unsupported action on flow (" + action.name() + ").");
+                logAndWrapException(405, "Unsupported action on flow (" + action.name() + ").");
         }
     }
 
@@ -422,17 +423,14 @@ public final class RestService {
     public String getAllUnits() throws UbongoHttpException {
         init();
         ObjectMapper mapper = new ObjectMapper();
-        String response;
+        String response = "{}";
         try {
             List<Unit> units = new ArrayList<>(serviceProvider.getAllUnits().values());
-            if (units == null) {
-                throw new UbongoHttpException(500, "Failed to retrieve units.");
-            }
             response = mapper.writeValueAsString(units);
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "One or more units could not be read. Details: " + e.getMessage());
         } catch (JsonProcessingException e) {
-            throw new UbongoHttpException(500, "Failed to serialize units to JSON.");
+            logAndWrapException(500, "Failed to serialize units to JSON.", e);
+        } catch (Exception e) {
+            logAndWrapException(500, "One or more units could not be read.", e);
         }
         return response;
     }
@@ -448,8 +446,8 @@ public final class RestService {
             try {
                 return Integer.toString(serviceProvider
                         .countRequests(new Timestamp(fromTime == null ? 0 : fromTime)));
-            } catch (PersistenceException e) {
-                throw new UbongoHttpException(500, "Failed to count requests.");
+            } catch (Exception e) {
+                logAndWrapException(500, "Failed to count requests.", e);
             }
         } else {
             ObjectMapper mapper = new ObjectMapper();
@@ -457,11 +455,12 @@ public final class RestService {
                 List<ExecutionRequest> requests = serviceProvider.getAllRequests(limit);
                 return mapper.writeValueAsString(requests);
             } catch (JsonProcessingException e) {
-                throw new UbongoHttpException(500, "Failed to serialize requests to JSON.");
-            } catch (PersistenceException e) {
-                throw new UbongoHttpException(500, "Failed to retrieve requests from the DB.");
+                logAndWrapException(500, "Failed to serialize requests to JSON.", e);
+            } catch (Exception e) {
+                logAndWrapException(500, "Failed to retrieve requests from the DB.", e);
             }
         }
+        return "{}";
     }
 
     @POST
@@ -471,8 +470,23 @@ public final class RestService {
         init();
         try {
             serviceProvider.generateBashFileForUnit(unitId);
-        } catch (PersistenceException e) {
-            throw new UbongoHttpException(500, "Failed to send request for bash file generation. Details: " + e.getMessage());
+        } catch (Exception e) {
+            logAndWrapException(500, "Failed to send request for bash file generation.", e);
+        }
+    }
+
+    private static void logAndWrapException(int status, String msg) throws UbongoHttpException {
+        logAndWrapException(status, msg, null);
+    }
+
+    private static void logAndWrapException(int status, String msg, Throwable t) throws UbongoHttpException {
+        String logMsg = "Status: " + status + ". Message: " + msg;
+        if (t != null) {
+            logger.error(logMsg, t);
+            throw new UbongoHttpException(status, msg, t);
+        } else {
+            logger.error(logMsg);
+            throw new UbongoHttpException(status, msg);
         }
     }
 }
