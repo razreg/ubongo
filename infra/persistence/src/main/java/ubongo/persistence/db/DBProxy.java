@@ -70,17 +70,19 @@ public class DBProxy {
                 try {
                     sshSession = SSHConnection.establish(sshProperties);
                     localPort = getFreeLocalPort();
-                    logger.info("Setting SSH Tunneling to remote DB (" + dbProperties.getHost() + ":" + dbProperties.getPort()
-                            + ") using local port " + localPort + "...");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Setting SSH Tunneling to remote DB (" + dbProperties.getHost() + ":" + dbProperties.getPort()
+                                + ") using local port " + localPort + "...");
+                    }
                     sshSession.setPortForwardingL(localPort, dbProperties.getHost(), dbProperties.getPort());
                 } catch (JSchException e) {
-                    String errorMsg = "Failed to establish SSH connection to the database";
-                    logger.error(errorMsg);
-                    throw new DBProxyException(errorMsg, e);
+                    throw new DBProxyException("Failed to establish SSH connection to the database", e);
                 }
             }
             if (connection == null || connection.isClosed()) {
-                logger.info("Establishing connection to " + getUrl() + " with user " + getUser() + "...");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Establishing connection to " + getUrl() + " with user " + getUser() + "...");
+                }
                 String driver = "com.mysql.jdbc.Driver";
                 try {
                     Class.forName(driver);
@@ -106,7 +108,9 @@ public class DBProxy {
             boolean alreadyClosed = true;
             if (connection != null && !connection.isClosed()) {
                 alreadyClosed = false;
-                logger.info("Closing connection to " + getUrl() + "...");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Closing connection to " + getUrl() + "...");
+                }
                 connection.close();
             }
             if (sshSession != null && sshSession.isConnected()) {
@@ -114,7 +118,7 @@ public class DBProxy {
                 sshSession.disconnect();
             }
             if (!alreadyClosed) {
-                logger.info("Successfully closed database connection via SSH tunneling");
+                logger.info("Closed database connection via SSH tunneling");
             }
         } catch (SQLException e) {
             String errorMsg =
@@ -135,8 +139,7 @@ public class DBProxy {
             PreparedStatement statement = connection.prepareStatement(sql);
             executeUpdate(statement);
         } catch (SQLException e) {
-            String errorMsg = "Failed to cleanup the DB";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to cleanup the DB", e);
         }
         return null;
     }
@@ -149,15 +152,12 @@ public class DBProxy {
      */
     public void updateStatus(Task task) throws DBProxyException {
         connect();
-        if (logger.isDebugEnabled()) {
-            logger.debug("Updating status in DB to " + task.getStatus() + " for taskId=" +
-                    task.getId());
-        }
         Task taskInDb = getTask(task.getId());
         for (TaskStatus status : TaskStatus.getFinalStatuses()) {
             if (taskInDb.getStatus() == status) {
                 logger.warn("Received request to update status of task (taskId=" + task.getId() + ") from "
-                        + taskInDb.getStatus() + " to " + task.getStatus() + ". Request denied.");
+                        + taskInDb.getStatus() + " to " + task.getStatus()
+                        + ". Request denied because the task is already in a final status.");
                 return;
             }
         }
@@ -184,6 +184,10 @@ public class DBProxy {
             }
             statement.setInt(4, task.getId()); // id of task to update
             executeUpdate(statement);
+            if (logger.isInfoEnabled()) {
+                logger.info("Updated status in DB to " + task.getStatus() + " for task with id=" +
+                        task.getId());
+            }
         } catch (SQLException e) {
             String errorMsg = "Failed to update task's status in DB (taskId="
                     + task.getId() + ", newStatus=" + task.getStatus() + ")";
@@ -205,7 +209,7 @@ public class DBProxy {
             String values = getUnitsAsValueList(analysisName, units);
             if (values == null) {
                 String errMsg = "System tried to add an empty list of units to the database";
-                logger.warn(errMsg);
+                logger.error(errMsg);
                 throw new DBProxyException(errMsg);
             }
             String sql = queriesProvider.getQuery(DBConstants.QUERY_CREATE_ANALYSIS)
@@ -213,9 +217,11 @@ public class DBProxy {
                     .replace("$values", values);
             PreparedStatement statement = connection.prepareStatement(sql);
             executeUpdate(statement);
+            if (logger.isInfoEnabled()) {
+                logger.info("Saved analysis " + analysisName + " with " + units.size() + " units");
+            }
         } catch (SQLException e) {
-            String errorMsg = "Failed to add analysis to DB";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to add analysis to DB", e);
         }
     }
 
@@ -295,8 +301,7 @@ public class DBProxy {
             statement.setInt(2, machine.getId());
             executeUpdate(statement);
         } catch (SQLException e) {
-            String errorMsg = "Failed to update machine in DB.";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to update machine in DB.", e);
         }
     }
 
@@ -306,18 +311,18 @@ public class DBProxy {
         try {
             String values = getMachinesAsValueList(machines);
             if (values == null) {
-                String errMsg = "System tried to add an empty list of machines to the database.";
-                logger.warn(errMsg);
-                throw new DBProxyException(errMsg);
+                throw new DBProxyException("System tried to add an empty list of machines to the database.");
             }
             String sql = queriesProvider.getQuery(DBConstants.QUERY_SAVE_MACHINES)
                     .replace("$machinesTable", machinesTableName)
                     .replace("$values", values);
             PreparedStatement statement = connection.prepareStatement(sql);
             executeUpdate(statement);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Saved machines in the database");
+            }
         } catch (SQLException e) {
-            String errorMsg = "Failed to add machines to DB.";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to add machines to DB.", e);
         }
     }
 
@@ -331,6 +336,9 @@ public class DBProxy {
             statement.setBoolean(1, activate);
             statement.setInt(2, machineId);
             executeUpdate(statement);
+            if (logger.isInfoEnabled()) {
+                logger.info("Machine with id=" + machineId + " was set to " + (activate ? "" : "in") + "active");
+            }
         } catch (SQLException e) {
             String errorMsg = "Failed to " + (activate ? "" : "de") + "activate machine with ID = " + machineId;
             throw new DBProxyException(errorMsg, e);
@@ -340,7 +348,6 @@ public class DBProxy {
     public int countRequests(Timestamp t) throws DBProxyException {
         connect();
         String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
-        String errorMsg = "Failed to retrieve requests from DB.";
         try {
             String sql = queriesProvider.getQuery(DBConstants.QUERY_COUNT_REQUESTS)
                     .replace("$requestsTable", requestsTableName);
@@ -353,7 +360,7 @@ public class DBProxy {
                 throw new DBProxyException("Failed to count requests: query did not return any result.");
             }
         } catch (SQLException e) {
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to retrieve requests from DB.", e);
         }
     }
 
@@ -361,7 +368,6 @@ public class DBProxy {
         connect();
         List<ExecutionRequest> requests = new ArrayList<>();
         String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
-        String errorMsg = "Failed to retrieve requests from DB.";
         try {
             String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_ALL_REQUESTS)
                     .replace("$requestsTable", requestsTableName);
@@ -372,7 +378,7 @@ public class DBProxy {
                 requests.add(requestFromResultSet(resultSet));
             }
         } catch (SQLException e) {
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to retrieve requests from DB.", e);
         }
         return requests;
     }
@@ -381,7 +387,6 @@ public class DBProxy {
         connect();
         List<ExecutionRequest> requests = new ArrayList<>();
         String requestsTableName = getTableName(DBConstants.REQUESTS_TABLE_NAME);
-        String errorMsg = "Failed to retrieve requests from DB.";
         try {
             String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_NEW_REQUESTS)
                     .replace("$requestsTable", requestsTableName);
@@ -391,7 +396,7 @@ public class DBProxy {
                 requests.add(requestFromResultSet(resultSet));
             }
         } catch (SQLException e) {
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to retrieve requests from DB.", e);
         }
         return requests;
     }
@@ -406,6 +411,10 @@ public class DBProxy {
             statement.setString(1, request.getStatus().toString());
             statement.setInt(2, request.getId());
             executeUpdate(statement);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Updated the status of request to " + request.getAction() + " for entityId="
+                        + request.getEntityId() + " to status=" + request.getStatus());
+            }
         } catch (SQLException e) {
             String errorMsg = "Failed to update request (id=" + request.getId()
                     + ") status in DB to " + request.getStatus();
@@ -423,9 +432,12 @@ public class DBProxy {
             statement.setInt(1, request.getEntityId());
             statement.setString(2, request.getAction().toString());
             executeUpdate(statement);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Request to " + request.getAction() + " for entityId="
+                        + request.getEntityId() + " was stored to the DB");
+            }
         } catch (SQLException e) {
-            String errorMsg = "Failed to add request to DB.";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to add request to DB.", e);
         }
     }
 
@@ -439,9 +451,7 @@ public class DBProxy {
         try {
             String values = getTasksAsValueList(tasks);
             if (values == null) {
-                String errMsg = "System tried to add an empty list of tasks to the database.";
-                logger.warn(errMsg);
-                throw new DBProxyException(errMsg);
+                throw new DBProxyException("System tried to add an empty list of tasks to the database.");
             }
             String sql = queriesProvider.getQuery(DBConstants.QUERY_CREATE_FLOW)
                     .replace("$flowsTable", flowsTableName)
@@ -455,10 +465,11 @@ public class DBProxy {
             executeUpdate(statement);
             ResultSet results = statement.getGeneratedKeys();
             results.next();
-            return results.getInt(1);
+            int flowId = results.getInt(1);
+            logger.info("Created flow with id=" + flowId + " for study " + context.getStudy());
+            return flowId;
         } catch (SQLException e) {
-            String errorMsg = "Failed to add tasks to DB.";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to add tasks to DB.", e);
         }
     }
 
@@ -475,14 +486,13 @@ public class DBProxy {
             if (affectedRows <= 0) {
                 throw new DBProxyException("Failed to start flow: there were no tasks in status 'CREATED' in flow=" + flowId);
             }
+            logger.info("Started flow with id=" + flowId);
         } catch (SQLException e) {
-            String errorMsg = "Failed to start flow in DB.";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to start flow in DB.", e);
         }
     }
 
     public List<Task> cancelFlow(int flowId) throws DBProxyException {
-
         List<Task> tasks = getTasks(flowId);
         if (tasks == null || tasks.isEmpty()) {
             throw new DBProxyException("Could not find tasks with flowId=" + flowId +
@@ -494,20 +504,29 @@ public class DBProxy {
                 if (status == t.getStatus()) return false;
             return true;
         }).collect(Collectors.toList());
+        if (logger.isInfoEnabled()) {
+            logger.info("Canceling flow with id=" + flowId + " with " + tasksToCancel.size() +
+                    " tasks to cancel (out of " + tasks.size() + " total)");
+        }
         for (Task task : tasksToCancel) {
             task.setStatus(TaskStatus.CANCELED);
             cancelTask(task);
         }
-        return tasks.stream()
+        List<Task> failedToCancel = tasks.stream()
                 .filter(t -> t.getStatus() == TaskStatus.PROCESSING)
                 .collect(Collectors.toList());
+        if (logger.isInfoEnabled() && failedToCancel.size() > 0) {
+            logger.info(failedToCancel.size() + " tasks in flow with id=" + flowId +
+                    " remain to be stopped to complete flow cancellation");
+        }
+        return failedToCancel;
     }
 
     public boolean cancelTask(Task task) throws DBProxyException {
         Task taskFromDb = getTask(task.getId());
         TaskStatus[] finalStatuses = TaskStatus.getFinalStatuses();
         if (taskFromDb.getStatus() == TaskStatus.PROCESSING) {
-            logger.info("Tried to cancel task (taskId=" + task.getId() + ") but the task is already executing.");
+            logger.warn("Tried to cancel task (taskId=" + task.getId() + ") but the task is already executing.");
             return false;
         }
         for (TaskStatus status : finalStatuses) {
@@ -530,9 +549,7 @@ public class DBProxy {
         try {
             String values = getTasksAsValueList(replacements, true);
             if (values == null) {
-                String errMsg = "System tried to add an empty list of tasks to the database.";
-                logger.warn(errMsg);
-                throw new DBProxyException(errMsg);
+                throw new DBProxyException("System tried to add an empty list of tasks to the database.");
             }
             String sql = queriesProvider.getQuery(DBConstants.QUERY_INSERT_CONTEXT_TO_TASKS)
                     .replace("$tasksTable", tasksTableName)
@@ -542,15 +559,14 @@ public class DBProxy {
             statement.setInt(1, originalTask.getId());
             executeUpdate(statement);
         } catch (SQLException e) {
-            String errorMsg = "Failed to add tasks to DB.";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to add tasks to DB.", e);
         }
     }
 
     public Task getTask(int id) throws DBProxyException {
         List<Task> tasks = getTasks(DBConstants.QUERY_GET_TASK_BY_ID, id);
         if (tasks.size() == 0) {
-            throw new DBProxyException("No task in the DB match the given id (" + id + ").");
+            throw new DBProxyException("No task in the DB matches the given id (" + id + ").");
         }
         return tasks.get(0);
     }
@@ -575,7 +591,6 @@ public class DBProxy {
         connect();
         List<FlowData> flows = new ArrayList<>();
         String flowsTableName = getTableName(DBConstants.FLOWS_TABLE_NAME);
-        String errorMsg = "Failed to retrieve flows from DB.";
         try {
             String sql = queriesProvider.getQuery(DBConstants.QUERY_GET_ALL_FLOWS)
                     .replace("$flowsTable", flowsTableName);
@@ -586,7 +601,7 @@ public class DBProxy {
                 flows.add(flowFromResultSet(resultSet));
             }
         } catch (SQLException | JsonParseException e) {
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to retrieve flows from DB.", e);
         }
         return flows;
     }
@@ -623,8 +638,7 @@ public class DBProxy {
                     connection.prepareStatement(sql);
             executeUpdate(statement);
         } catch (SQLException e) {
-            String errorMsg = "Failed to clear debug tables.";
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to clear debug tables.", e);
         }
         return null;
     }
@@ -638,7 +652,6 @@ public class DBProxy {
         List<Task> tasks = new ArrayList<>();
         String tasksTableName = getTableName(DBConstants.TASKS_TABLE_NAME);
         String flowsTableName = getTableName(DBConstants.FLOWS_TABLE_NAME);
-        String errorMsg = "Failed to retrieve tasks from DB.";
         try {
             String sql = queriesProvider.getQuery(queryName)
                     .replace("$flowsTable", flowsTableName)
@@ -655,7 +668,7 @@ public class DBProxy {
                 tasks.add(taskFromResultSet(resultSet));
             }
         } catch (SQLException | JsonParseException | UnitFetcherException e) {
-            throw new DBProxyException(errorMsg, e);
+            throw new DBProxyException("Failed to retrieve tasks from DB.", e);
         }
         return tasks;
     }
@@ -931,6 +944,10 @@ public class DBProxy {
     }
 
     private int executeUpdate(PreparedStatement statement) throws SQLException {
+        if (logger.isDebugEnabled()) {
+            int startIndex = statement.toString().indexOf(':') + 2;
+            logger.debug("Executing update: " + statement.toString().substring(startIndex));
+        }
         return statement.executeUpdate();
     }
 

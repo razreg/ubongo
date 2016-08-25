@@ -76,8 +76,8 @@ public class QueueManager {
      * @see #initQueue()
      */
     public void start() {
-        logger.info("Starting Queue Manager");
         initQueue();
+        logger.info("Queue Manager started");
     }
 
     /**
@@ -90,6 +90,7 @@ public class QueueManager {
         dependencyMap.clear();
         taskIdsInCancel.clear();
         setLocatorMap.clear();
+        logger.info("Queue Manager stopped");
     }
 
     /**
@@ -121,6 +122,7 @@ public class QueueManager {
         synchronized(producerLock) {
             producerMayWork = false;
         }
+        logger.debug("Resuming task with id=" + taskId);
         persistence.resumeTask(taskId);
         synchronized(producerLock) {
             producerMayWork = true;
@@ -138,6 +140,11 @@ public class QueueManager {
     synchronized public void updateTaskAfterExecution(Task task) {
         try {
             persistence.updateTaskStatus(task);
+        } catch (PersistenceException e) {
+            logger.fatal("Failed to update task with id=" + task.getId() + " in DB", e);
+            ExecutionServer.notifyFatal(e);
+        }
+        try {
             TaskStatus status = task.getStatus();
             if (status == TaskStatus.COMPLETED ||
                 status == TaskStatus.FAILED ||
@@ -154,7 +161,8 @@ public class QueueManager {
                 }
             }
         } catch (PersistenceException | InterruptedException e) {
-            logger.fatal("Failed to update task in DB");
+            logger.fatal("Some problem occurred while tried to handle dependent tasks of task with id="
+                    + task.getId() + "from flow with id=" + task.getFlowId(), e);
             ExecutionServer.notifyFatal(e);
         }
     }
@@ -168,7 +176,6 @@ public class QueueManager {
         for (int i = 0; i < NUM_CONSUMER_THREADS; i++)
             consumers.execute(new Consumer(queue, persistence));
         producer = Executors.newSingleThreadExecutor();
-        // TODO delay the producer from beginning so that it won't handle new tasks before the server is clean?
         producer.execute(new Producer(queue, persistence));
     }
 
@@ -216,6 +223,11 @@ public class QueueManager {
                        or change status to On Hold if the flow is stuck */
                     dependingTasks.forEach(t -> t.setStatus(newStatus));
                     persistence.updateTasksStatus(dependingTasks);
+                    if (logger.isInfoEnabled()) {
+                        logger.info("Changed status to " + newStatus + " for " + dependingTasks.size()
+                                + " tasks from flow with id=" + task.getFlowId() + " after handling task with id="
+                                + task.getId() + " and status " + task.getStatus());
+                    }
                     if (!makeNew) {
                         for (Task t : dependingTasks) {
                             handleCompletedTask(t, false);
@@ -302,15 +314,12 @@ public class QueueManager {
                             }
                         }
                     } catch (MachinesManagementException e) {
-                        logger.warn("Queue consumer thread failed to find available machine to run task. Details: " + e.getMessage(), e);
+                        logger.warn("Queue consumer thread failed to find available machine to run task. The flow will be stalled.", e);
                         currTask.setStatus(TaskStatus.ON_HOLD);
                         updateTaskAfterExecution(currTask);
                         continue;
                     }
                     persistence.updateTaskStatus(currTask);
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Sending task for execution (taskId=" + currTask.getId() + ")");
-                    }
                     if (currTask.getOutputPath().contains("*")) {
                         logger.error("Tried to execute taskId=" + currTask.getId()
                                 + " but found '*' in the output path: " + currTask.getOutputPath());
@@ -318,15 +327,21 @@ public class QueueManager {
                         updateTaskAfterExecution(currTask);
                         continue;
                     }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Sending task with id=" + currTask.getId() + " for execution...");
+                    }
                     executionProxy.execute(currTask, QueueManager.this);
+                    if (logger.isInfoEnabled()) {
+                        logger.info("Task with id=" + currTask.getId() + " was sent for execution");
+                    }
                 }
-            } catch (InterruptedException e) {
-                logger.debug("Queue consumer thread shutting down after interrupt");
             } catch (PersistenceException e) {
-                logger.fatal("Failed to update task in DB");
+                logger.fatal("Failed to execute task", e);
                 ExecutionServer.notifyFatal(e);
-            } catch (CloneNotSupportedException e) {
-                // not really possible because clone is supported for task
+            } catch (InterruptedException | CloneNotSupportedException e) {
+                /* InterruptedException will happen when the QueueManager is stopped and it will probably be logger
+                   by the closer or the reason will be already known to the user. CloneNotSupportedException is not
+                   really possible because clone is supported for task */
             }
         }
 
@@ -417,6 +432,10 @@ public class QueueManager {
                 Set<Task> taskSet = new HashSet<>();
                 taskSet.add(task);
                 dependencyMap.put(dependencyKey.getId(), taskSet);
+                if (logger.isDebugEnabled()) {
+                    logger.debug(taskSet.size() + " tasks were found to be depending on the completion of task with id="
+                            + task.getId() + " from flow with id=" + task.getFlowId());
+                }
             }
         }
     }
@@ -504,10 +523,10 @@ public class QueueManager {
                     }
                 }
             } catch (InterruptedException e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Queue producer thread shutting down after interrupt");
-                }
+                /* not interesting to log and certainly not to throw (this is usually triggered by planned
+                shutdown and in case of unplanned, other more informative exceptions will have already been logged */
             } catch (Exception e) {
+                logger.fatal("A fatal error has occurred in the Queue Manager's producer thread", e);
                 ExecutionServer.notifyFatal(e);
             }
         }
@@ -555,6 +574,11 @@ public class QueueManager {
                 return true;
             }
             persistence.insertContextToTask(task, tasks);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Task with id=" + task.getId() +
+                        " was found to include context wildcards. Context was inserted to the task and updated in the database, splitting it to "
+                        + tasks.size() + " different tasks within flow with id=" + task.getFlowId());
+            }
             return false;
         }
     }

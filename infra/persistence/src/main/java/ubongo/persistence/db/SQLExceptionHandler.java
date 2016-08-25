@@ -44,7 +44,7 @@ public class SQLExceptionHandler {
         }
         if (e instanceof SQLClientInfoException) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Client info properties could not be set on the database connection:\n" +
+                logger.warn("Client info properties could not be set on the database connection:\n" +
                         failedClientProps(((SQLClientInfoException) e).getFailedProperties()));
             }
         }

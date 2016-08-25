@@ -52,11 +52,13 @@ public class ExecutionServer {
         try {
             executionServerMain();
         } catch (Exception e) {
-            logger.fatal("Server shutdown due to an unexpected runtime exception", e);
+            logger.fatal("Server shutting down due to an unexpected exception", e);
+            stop();
         }
     }
 
     private static void executionServerMain() {
+        logger.info("Starting the execution server...");
         keepRunning = true;
         String configPath = System.getProperty(CONFIG_PATH);
         unitsDirPath = System.getProperty(UNITS_DIR_PATH);
@@ -65,7 +67,7 @@ public class ExecutionServer {
         try {
             initServer(configPath, unitsDirPath, queriesPath);
         } catch (UnmarshalException e) {
-            logger.error("Failed to init server.", e);
+            logger.fatal("Failed to init server", e);
             return;
         }
         runServer();
@@ -101,12 +103,10 @@ public class ExecutionServer {
 
     @SuppressWarnings("StatementWithEmptyBody")
     private static void runServer() {
-        start();
         final Thread mainThread = Thread.currentThread();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 keepRunning = false;
-                logger.info("Server is shutting down...");
                 try {
                     mainThread.join();
                 } catch (InterruptedException e) {
@@ -114,6 +114,7 @@ public class ExecutionServer {
                 }
             }
         });
+        start();
         while(keepRunning);
         stop();
     }
@@ -124,7 +125,7 @@ public class ExecutionServer {
         } catch (PersistenceException e) {
             queueManager = null;
             machinesManager = null;
-            logger.fatal("Server failed to start the persistence module.", e);
+            logger.fatal("Server has failed to start the persistence module.", e);
             keepRunning = false;
             return;
         }
@@ -132,14 +133,14 @@ public class ExecutionServer {
             machinesManager.start();
         } catch (PersistenceException e) {
             queueManager = null;
-            logger.fatal("Server failed to start the machines manager.", e);
+            logger.fatal("Server has failed to start the machines manager.", e);
             keepRunning = false;
             return;
         }
         try {
             cleanup(); // also starts the queue manager!
         } catch (PersistenceException e) {
-            logger.fatal("Server failed to perform cleanup on the database.", e);
+            logger.fatal("Server has failed to perform cleanup on the database.", e);
             keepRunning = false;
             return;
         }
@@ -147,7 +148,7 @@ public class ExecutionServer {
             tasksStatusListener();
         } catch (Exception e) {
             queueManager = null;
-            logger.fatal("Server failed to start the task status listener (RabbitMQ listener).", e);
+            logger.fatal("Server has failed to start the task status listener (RabbitMQ listener).", e);
             keepRunning = false;
             return;
         }
@@ -165,13 +166,14 @@ public class ExecutionServer {
     }
 
     private static void stop() {
+        logger.info("Server is shutting down...");
         if (queueManager != null) queueManager.stop();
         if (machinesManager != null) machinesManager.stop();
         if (persistence != null) {
             try {
                 persistence.stop();
             } catch (PersistenceException e) {
-                logger.error("Server failed to stop the persistence module.", e);
+                logger.warn("Server has failed to stop the persistence module.", e);
             }
         }
         if (requestsHandler != null && !requestsHandler.isTerminated()) {
@@ -184,7 +186,7 @@ public class ExecutionServer {
                 terminated = false;
             }
             if (!terminated) {
-                logger.error("Server failed to stop the requests handler.");
+                logger.warn("Server has failed to stop the requests handler.");
             }
         }
     }
@@ -220,7 +222,7 @@ public class ExecutionServer {
                     break;
             }
         } catch (Exception e) {
-            logger.error("Server failed to handle request (id="
+            logger.error("Server has failed to handle request (id="
                     + request.getId() + ", type="
                     + request.getAction() + ")", e);
             newStatus = ExecutionRequest.Status.FAILED;
@@ -229,7 +231,7 @@ public class ExecutionServer {
             try {
                 persistence.updateRequestStatus(request);
             } catch (PersistenceException e) {
-                logger.error("Server failed to update status of request (id="
+                logger.error("Server has failed to update status of request (id="
                         + request.getId() + ", type="
                         + request.getAction() + ") to status="
                         + request.getStatus(), e);
@@ -256,6 +258,13 @@ public class ExecutionServer {
             if (setFailed) {
                 task.setStatus(TaskStatus.FAILED);
                 queueManager.updateTaskAfterExecution(task);
+                if (logger.isInfoEnabled()) {
+                    logger.info("A request to stop task with id=" + task.getId() + " was sent to machine with id=" + task.getMachine().getId()
+                            + ". However, this machine is not available and therefore the task's status was changed to 'Failed'");
+                }
+            } else if (logger.isInfoEnabled()) {
+                logger.info("A request to stop task with id=" + task.getId()
+                        + " was sent to machine with id=" + task.getMachine().getId());
             }
         }
     }
@@ -292,7 +301,7 @@ public class ExecutionServer {
     protected static void notifyFatal(Throwable e) {
         /* currently we do not care what Throwable resulted in this fatal because
            we always just perform a cleanup routine */
-        logger.info("Restarting server...");
+        logger.info("Fatal error occurred. Restarting server...");
         stop();
         executionServerMain();
     }
@@ -301,7 +310,7 @@ public class ExecutionServer {
         Map<Integer,Unit> allUnits = persistence.getAllUnits();
         Unit unit = allUnits.get(unitId);
         if (unit == null) {
-            throw new PersistenceException("Configuration file was not found for unit " + unitId);
+            throw new PersistenceException("Configuration file was not found for unit with id=" + unitId);
         }
         String unitBashPath = Paths.get(unitsDirPath, Unit.getUnitBashFileName(unit.getId())).toString();
         try {
@@ -312,12 +321,12 @@ public class ExecutionServer {
             } catch (IOException e1) {
                 // ignore
             }
-            logger.error("Failed to generate bash file for unit " + unitId, e);
-            throw new PersistenceException(e.getMessage(), e);
+            throw new PersistenceException("Failed to generate bash file for unit with id=" + unitId, e);
         }
     }
 
     private static void cleanup() throws PersistenceException {
+        logger.info("Performing database cleanup");
         persistence.performCleanup();
         List<Task> processing = persistence.getProcessingTasks();
         queueManager.start();
@@ -337,7 +346,7 @@ public class ExecutionServer {
                     throws IOException {
                 try {
                     RabbitData message = RabbitData.fromBytes(body);
-                    System.out.println(" [!] Received '" + message.getMessage() + "'");
+                    logger.info("Received message '" + message.getMessage() + "' from RabbitMQ");
                     Task task = message.getTask();
                     queueManager.updateTaskAfterExecution(task);
                 } catch (Exception e){
