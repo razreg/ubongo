@@ -56,9 +56,9 @@
                 <td width="75%"><div id="taskDetailsGrid" ui-grid="taskDetailsGridOptions" class="gridStyle unitGridStyle"
                          ui-grid-move-columns ui-grid-resize-columns></div></td>
                 <td align="center" valign="top">
-                    <button type="button" class="btn btn-default btn-task-action" ng-click="cancelTask()" ng-disabled="!currTask.actions.act_cancel">Cancel</button>
-                    <button type="button" class="btn btn-default btn-task-action" ng-click="killTask()" ng-disabled="!currTask.actions.act_kill">Stop</button>
-                    <button type="button" class="btn btn-default btn-task-action" ng-click="resumeTask()" ng-disabled="!currTask.actions.act_resume">Resume</button>
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="cancelTask()" ng-disabled="currTask.actionClicked || !currTask.actions.act_cancel">Cancel</button>
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="killTask()" ng-disabled="currTask.actionClicked || !currTask.actions.act_kill">Stop</button>
+                    <button type="button" class="btn btn-default btn-task-action" ng-click="resumeTask()" ng-disabled="currTask.actionClicked || !currTask.actions.act_resume">Resume</button>
                 </td>
             </tr>
         </table>

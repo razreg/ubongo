@@ -22,7 +22,8 @@
           act_cancel: false,
           act_kill: false,
           act_resume: false
-        }
+        },
+        actionClicked: false
       };
       reloadFlows();
 
@@ -88,6 +89,7 @@
       }
 
       function reloadFlows() {
+        $scope.currTask.actionClicked = false;
         return $http.get('rest/api/flows')
           .success(function(data) {
             $scope.flows = data;
@@ -175,6 +177,7 @@
       };
 
       $scope.cancelTask = function() {
+        $scope.currTask.actionClicked = true;
         $http.post(getApiTaskActionPath('cancel'), {})
           .success(function() {
             displayMsg(true, 'A request to cancel task was sent to the server', GOOD_STYLE);
@@ -185,6 +188,7 @@
       };
 
       $scope.resumeTask = function() {
+        $scope.currTask.actionClicked = true;
         $http.post(getApiTaskActionPath('resume'), {})
           .success(function() {
             displayMsg(true, 'A request to resume task was sent to the server', GOOD_STYLE);
@@ -195,6 +199,7 @@
       };
 
       $scope.killTask = function() {
+        $scope.currTask.actionClicked = true;
         $http.post(getApiTaskActionPath('stop'), {})
           .success(function() {
             displayMsg(true, 'A request to stop task was sent to the server', GOOD_STYLE);
