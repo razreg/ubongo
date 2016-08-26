@@ -15,8 +15,8 @@ do
         rm -f "${filename}"
         touch "${filename}"
         # Write to Matlab file
-        echo "addpath(genpath('/specific/netapp5/hezi/EEGPipelineSystem/units/eeglab13_0_0b/eeglab13_0_0b'));" >> ${filename}
-        echo "rmpath('/specific/netapp5/hezi/EEGPipelineSystem/units/eeglab13_0_0b/eeglab13_0_0b/functions/octavefunc/signal');" >> ${filename}
+        echo "addpath(genpath('/specific/netapp5/hezi/EEGPipelineSystem/eeglab13_0_0b/eeglab13_0_0b'));" >> ${filename}
+        echo "rmpath('/specific/netapp5/hezi/EEGPipelineSystem/eeglab13_0_0b/eeglab13_0_0b/functions/octavefunc/signal');" >> ${filename}
         echo "input_dir ='${INPUT_DIR}';" >> ${filename}
         echo "output_dir ='${OUTPUT_DIR}';" >> ${filename}
         echo "input_file_name ='${currfilename}';" >> ${filename}
