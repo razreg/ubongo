@@ -14,6 +14,7 @@ import ubongo.persistence.PersistenceImpl;
 import ubongo.server.exceptions.MachinesManagementException;
 
 import javax.xml.bind.UnmarshalException;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -315,6 +316,8 @@ public class ExecutionServer {
         String unitBashPath = Paths.get(unitsDirPath, Unit.getUnitBashFileName(unit.getId())).toString();
         try {
             UnitAdder.generateBashFile(unit, unitBashPath);
+            File file = new File(unitBashPath);
+            file.setExecutable(true);
         } catch (Exception e) {
             try {
                 Files.deleteIfExists(Paths.get(unitBashPath));
