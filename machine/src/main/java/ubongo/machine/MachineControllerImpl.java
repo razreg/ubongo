@@ -35,6 +35,12 @@ public class MachineControllerImpl implements MachineController {
             boolean done = false;
             logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Executing unit Bash (and Matlabs that will be generated during execution)..." +
                     "\nWait for log updates when execution completed.");
+
+            logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Command:");
+            for (String s : command){
+                logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] " + s);
+            }
+            logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Execution path : " + unitsDir.toString());
             p = runtime.exec(command, null, new File(unitsDir.toString()));
             while (!done) {
                 handleStopInterrupt(task);
