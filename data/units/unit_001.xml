@@ -3,8 +3,8 @@
 <unit id="1"> <!-- supply a unique integer id, which will also appear in the name of the file (we expect a number between 0 and 999 but this can be changed) -->
     <name>CreateSetFromBdf</name>
     <description>Creates a .set file from .bdf file for EEGLab</description>
-    <input-files>/specific/netapp5/hezi/shellybar/EEGPiplineSystem/Experiments/{study}/{subject}/RawData/(.*).bdf</input-files>
-    <output-dir>/specific/netapp5/hezi/shellybar/EEGPiplineSystem/Experiments/{study}/{subject}/</output-dir>
+    <input-files>/specific/netapp5/hezi/EEGPipelineSystem/Experiments/{study}/{subject}/RawData/(.*).bdf</input-files>
+    <output-dir>/specific/netapp5/hezi/EEGPipelineSystem/Experiments/{study}/{subject}/</output-dir>
     <parameters> <!-- parameters that go in the script - anything other than the input/output files -->
     </parameters>
 </unit>
