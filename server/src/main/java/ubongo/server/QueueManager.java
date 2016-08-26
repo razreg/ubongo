@@ -40,7 +40,7 @@ public class QueueManager {
 
     /**
      * setLocatorMap maps between TaskKey and DependencyKey; TaskKey is an identifier based on a task's flow-id and
-     * serial number within that flow, whereas DependencyKey is an object that includes a unique identifier for and
+     * serial number within that flow, whereas DependencyKey is an object that includes a unique identifier for
      * a set of tasks. This set of tasks corresponds to the TaskKey - namely, all tasks within the set share the same
      * flow-id and serial number. Therefore, this data-structure behaves very much like
      * <a href="https://en.wikipedia.org/wiki/Disjoint-set_data_structure">union-find</a>.
@@ -140,7 +140,7 @@ public class QueueManager {
     synchronized public void updateTaskAfterExecution(Task task) {
         try {
             persistence.updateTaskStatus(task);
-        } catch (PersistenceException e) {
+        } catch (Exception e) {
             logger.fatal("Failed to update task with id=" + task.getId() + " in DB", e);
             ExecutionServer.notifyFatal(e);
         }
@@ -160,7 +160,7 @@ public class QueueManager {
                     dependencyMap.notifyAll();
                 }
             }
-        } catch (PersistenceException | InterruptedException e) {
+        } catch (Exception e) {
             logger.fatal("Some problem occurred while tried to handle dependent tasks of task with id="
                     + task.getId() + "from flow with id=" + task.getFlowId(), e);
             ExecutionServer.notifyFatal(e);
@@ -313,7 +313,7 @@ public class QueueManager {
                                 continue;
                             }
                         }
-                    } catch (MachinesManagementException e) {
+                    } catch (Exception e) {
                         logger.warn("Queue consumer thread failed to find available machine to run task. The flow will be stalled.", e);
                         currTask.setStatus(TaskStatus.ON_HOLD);
                         updateTaskAfterExecution(currTask);
@@ -335,13 +335,13 @@ public class QueueManager {
                         logger.info("Task with id=" + currTask.getId() + " was sent for execution");
                     }
                 }
-            } catch (PersistenceException e) {
-                logger.fatal("Failed to execute task", e);
-                ExecutionServer.notifyFatal(e);
             } catch (InterruptedException | CloneNotSupportedException e) {
                 /* InterruptedException will happen when the QueueManager is stopped and it will probably be logger
                    by the closer or the reason will be already known to the user. CloneNotSupportedException is not
                    really possible because clone is supported for task */
+            } catch (Exception e) {
+                logger.fatal("Failed to execute task", e);
+                ExecutionServer.notifyFatal(e);
             }
         }
 
@@ -402,7 +402,7 @@ public class QueueManager {
          * dependents may be executed.
          * @param task to add to dependencyMap so that when a task that it depends on will be completed,
          *             task will be reachable.
-         * @param dependencyList is the list of tasks that tasks depends on, as explained above.
+         * @param dependencyList is the list of tasks that task depends on, as explained above.
          */
         synchronized private void storeDependencies(Task task, List<Task> dependencyList) {
             TaskKey key = new TaskKey(dependencyList.stream().findAny().get()); // representative of set
@@ -422,6 +422,10 @@ public class QueueManager {
                     } else { // this is not the first task depending on retrieved dependencyList
                         dependents.add(task);
                         inserted = true;
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Task with id=" + task.getId() + " from flow with id=" + task.getFlowId() +
+                                    " depends on the completion of " + taskIds.size() + " other task(s)");
+                        }
                     }
                 }
             }
@@ -433,8 +437,8 @@ public class QueueManager {
                 taskSet.add(task);
                 dependencyMap.put(dependencyKey.getId(), taskSet);
                 if (logger.isDebugEnabled()) {
-                    logger.debug(taskSet.size() + " task(s) were found to be depending on the completion of task with id="
-                            + task.getId() + " from flow with id=" + task.getFlowId());
+                    logger.debug("Task with id=" + task.getId() + " from flow with id=" + task.getFlowId() +
+                            " depends on the completion of " + taskIds.size() + " other task(s)");
                 }
             }
         }
@@ -477,7 +481,7 @@ public class QueueManager {
                     List<Task> tasks;
                     try {
                         tasks = persistence.getNewTasks();
-                    } catch (PersistenceException e) {
+                    } catch (Exception e) {
                         continue;
                     }
                     synchronized(producerLock) {

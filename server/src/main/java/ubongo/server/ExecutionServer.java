@@ -41,7 +41,7 @@ public class ExecutionServer {
     private static volatile boolean keepRunning = true;
     private static final int SECONDS_INTERVAL_FOR_REQUESTS_HANDLER = 20;
 
-    private static Logger logger = LogManager.getLogger(ExecutionServer.class);
+    private static final Logger logger = LogManager.getLogger(ExecutionServer.class);
     private static ScheduledExecutorService requestsHandler;
     private static MachinesManager machinesManager;
     private static QueueManager queueManager;

@@ -48,13 +48,13 @@ public class MachineControllerImpl implements MachineController {
                 }
             }
             handleStopInterrupt(task);
-            logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Unit completed successfully ." + getUnitOutput(p,task));
+            logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Unit completed successfully ." + getUnitOutput(p, task));
         } catch (IOException e) {
             handleStopInterrupt(task);
             if (p != null)
-                logger.error("[Study = " + taskStudy + "] [Unit = "+ unitId +"] Failed running unit: " + getUnitErrors(p, task));
+                logger.error("[Study = " + taskStudy + "] [Unit = "+ unitId +"] Failed running unit: " + getUnitErrors(p, task), e);
             else
-                logger.error("[Study = " + taskStudy + "]  [Unit = "+ unitId +"] Failed running unit: " + e.getMessage());
+                logger.error("[Study = " + taskStudy + "]  [Unit = "+ unitId +"] Failed running unit: " + e.getMessage(), e);
             return false;
         }
         handleStopInterrupt(task);
@@ -65,7 +65,7 @@ public class MachineControllerImpl implements MachineController {
             logger.error("[Study = " + taskStudy + "] [Unit = " + unitId + "] Unit completed, but output directory is empty : " + outputDirectory.toString()
                 + "\nFor Matlab execution logs and for Matlab automated generated scripts, " +
                     "\nplease refer to the files that ends with task_" + task.getId() + ".m, task_" + task.getId() + ".txt in the following path: \n" +
-                    Paths.get(unitsDir.toString(), "bashTmp").toString() );
+                    Paths.get(unitsDir.toString(), "bashTmp").toString());
             String bashErr = getUnitErrors(p, task);
             if (!bashErr.isEmpty())
                 logger.error("[Study = " + taskStudy + "]  [Unit = " + unitId + "] Bash execution errors: " + bashErr);
@@ -85,7 +85,7 @@ public class MachineControllerImpl implements MachineController {
                 builder.append(System.getProperty("line.separator"));
             }
         } catch (IOException e) {
-            logger.error("[Study = " + taskStudy + "] [Unit = " + unitId + "] Failed receiving unit bash execution output : " + e.getMessage());
+            logger.error("[Study = " + taskStudy + "] [Unit = " + unitId + "] Failed receiving unit bash execution output : " + e.getMessage(), e);
         }
         return builder.toString();
     }
@@ -101,7 +101,7 @@ public class MachineControllerImpl implements MachineController {
                 builder.append(System.getProperty("line.separator"));
             }
         } catch (IOException e) {
-            logger.error("[Study = " + taskStudy + "] [Unit = " + unitId + "] Failed receiving unit bash execution errors : " + e.getMessage());
+            logger.error("[Study = " + taskStudy + "] [Unit = " + unitId + "] Failed receiving unit bash execution errors : " + e.getMessage(), e);
         }
         return builder.toString();
     }
@@ -111,19 +111,20 @@ public class MachineControllerImpl implements MachineController {
         Path inputDirectory = Paths.get(inputDir);
         String unitExecutable = Unit.getUnitBashFileName(task.getUnit().getId());
         List<UnitParameter> params = task.getUnit().getParameters();
-        int paramsNum = 1 + 2 + params.size();
-        String[] bashCommand = new String[paramsNum+1]; // extra param is TASK_ID
-        bashCommand[0] = unitExecutable;
-        bashCommand[1] = Integer.toString(task.getId());
-        bashCommand[2] = inputDirectory.toString();
-        bashCommand[3] = outputDirectory.toString();
+        int paramsNum = 5 + params.size();
+        String[] bashCommand = new String[paramsNum];
+        int i = 0;
+        bashCommand[i++] = "sh";
+        bashCommand[i++] = unitExecutable;
+        bashCommand[i++] = Integer.toString(task.getId());
+        bashCommand[i++] = inputDirectory.toString();
+        bashCommand[i++] = outputDirectory.toString();
         logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Unit information: Executable = " + unitExecutable + " tmpInputDir = " + inputDirectory.toString() +
                 " tmpOutputDir = " + outputDirectory.toString());
         if (params.isEmpty())
             logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Unit has no arguments.");
         else
             logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Unit arguments:");
-        int i = 4;
         for (UnitParameter unitParam : params) {
             bashCommand[i] = unitParam.getValue();
             logger.info("[Study = " + taskStudy + "] [Unit = " + unitId + "] Arg = [" + bashCommand[i] + "]");

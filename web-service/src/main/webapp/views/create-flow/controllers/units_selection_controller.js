@@ -82,7 +82,7 @@
         enableHorizontalScrollbar: true,
         enablePinning: false,
         columnDefs: [
-          {name: 'display', displayName: 'Name', width: '25%', pinnedLeft: true, enableHiding: false, enableCellEdit: false},
+          {name: 'display', displayName: 'Name', width: '25%', enableHiding: false, enableCellEdit: false},
           {name: 'value', enableHiding: false, enableCellEdit: true}
         ]
       };
