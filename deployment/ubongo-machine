@@ -78,6 +78,7 @@ else
             echo "Using SERVER = $SERVER"
             echo "Using PATH_TO_JAR = $PATH_TO_JAR"
             echo "Using LOG_DIR = $LOG_DIR"
+            mkdir -p $LOG_DIR
             echo "Using CONF_PATH = $CONF_PATH"
             echo "Using UNITS_PATH = $UNITS_PATH"
             BASH_DIRECTORY="$UNITS_PATH"bashTmp
