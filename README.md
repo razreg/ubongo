@@ -8,13 +8,11 @@ This is a repository for with the code and documentation of our final project fo
 This project is licensed under the terms of the MIT license.
 
 <div align="center">
-![Project architecture and technologies](docs/architecture.png)
-
+![Project architecture and technologies](/docs/architecture.png)
 Project architecture and technologies
 </div>
 
 <div align="center">
-![UI screen shots](docs/screenshots.png)
-
+![UI screen shots](/docs/screenshots.png)
 UI screen shot
 </div>
