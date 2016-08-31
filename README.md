@@ -1,4 +1,10 @@
-# Ubnogo - A System for Executing and Managing Neuroscience Analyses
+<div align="center">
+<img src="./web-service/src/main/webapp/images/Ubongo.gif" />
+</div>
+<br/>
+
+# Ubnogo
+##A System for Executing and Managing Neuroscience Analyses
 Tel Aviv University 2016 | Electrical and Computer Engineering Final Project
 
 This is a repository for with the code and documentation of our final project for B.Sc. in Electrical Engineering and Computer Science at Tel-Aviv University (Course no. 0512.4000). 
@@ -11,8 +17,8 @@ This project is licensed under the terms of the MIT license.
 <img src="./docs/architecture.png" />
 <br><b>Image 1: Project architecture and technologies</b>
 </div>
-<br>
+<br/>
 <div align="center">
 <img src="./docs/screenshots.png" />
-<br><b>Image 2: UI screen-shot</b>
+<br/><b>Image 2: UI screen-shot</b>
 </div>
