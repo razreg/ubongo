@@ -1,9 +1,10 @@
 <div align="center">
 <img src="./web-service/src/main/webapp/images/Ubongo.gif"/>
 <br>
-##A System for Executing and Managing Neuroscience Analyses
-</div>
+<h2>A System for Executing and Managing Neuroscience Analyses</h2>
 Tel Aviv University 2016 | Electrical and Computer Engineering Final Project
+<br>
+</div>
 
 This is a repository for the code and documentation of our final project for B.Sc. in Electrical Engineering and Computer Science at Tel-Aviv University (Course no. 0512.4000). 
 
